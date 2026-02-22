@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+
+  @@map("users")
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  description  String?
+  price        Decimal  @db.Decimal(10, 2)
+  originalPrice Decimal? @db.Decimal(10, 2)
+  image        String?
+  category     Category
+  pet          Pet
+  rating       Decimal  @default(0) @db.Decimal(2, 1)
+  reviewCount  Int      @default(0)
+  isNew        Boolean  @default(false)
+  discount     Int?
+  featured     Boolean  @default(false)
+  stock        Int      @default(0)
+  tags         String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  orderItems   OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id               String      @id @default(uuid())
+  userId           String
+  total            Decimal     @db.Decimal(10, 2)
+  status           OrderStatus @default(PENDING)
+  paymentMethod    String?
+  shippingStreet   String?
+  shippingCity     String?
+  shippingState    String?
+  shippingZipCode  String?
+  shippingCountry  String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items            OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum Category {
+  FOOD
+  TOYS
+  SUPPLEMENTS
+}
+
+enum Pet {
+  CAT
+  DOG
+  BOTH
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}

@@ -109,7 +109,7 @@ export async function getOrder(req: AuthRequest, res: Response) {
   const { id } = req.params
 
   const order = await prisma.order.findUnique({
-    where: { id },
+    where: { id: id as string },
     include: {
       items: {
         include: {
@@ -139,7 +139,7 @@ export async function updateOrderStatus(req: Request, res: Response) {
   const { status } = req.body
 
   const order = await prisma.order.update({
-    where: { id },
+    where: { id: id as string },
     data: { status },
     include: {
       items: {

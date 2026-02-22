@@ -1,6 +1,8 @@
 import { Role, OrderStatus, Category, Pet } from '@prisma/client'
+import type { Request } from 'express'
 
-export type { Role, OrderStatus, Category, Pet }
+export { Role, OrderStatus, Category, Pet }
+export type { Role as RoleType, OrderStatus as OrderStatusType, Category as CategoryType, Pet as PetType }
 
 export interface AuthRequest extends Request {
   user?: {

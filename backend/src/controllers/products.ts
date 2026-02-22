@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import prisma from '../config/database'
-import { AuthRequest } from '../types'
+import { AuthRequest, Category, Pet } from '../types'
 import { NotFoundError } from '../utils/errors'
 import { createProductSchema, updateProductSchema } from '../validation'
 import { Prisma } from '@prisma/client'
@@ -11,11 +11,11 @@ export async function getProducts(req: Request, res: Response) {
   const where: Prisma.ProductWhereInput = {}
 
   if (category) {
-    where.category = category.toString().toUpperCase()
+    where.category = category.toString().toUpperCase() as Category
   }
 
   if (pet) {
-    where.pet = pet.toString().toUpperCase()
+    where.pet = pet.toString().toUpperCase() as Pet
   }
 
   if (search) {
@@ -52,7 +52,7 @@ export async function getProduct(req: Request, res: Response) {
   const { id } = req.params
 
   const product = await prisma.product.findUnique({
-    where: { id }
+    where: { id: id as string }
   })
 
   if (!product) {
@@ -83,7 +83,7 @@ export async function updateProduct(req: Request, res: Response) {
   const data = updateProductSchema.parse(req.body)
 
   const product = await prisma.product.update({
-    where: { id },
+    where: { id: id as string },
     data
   })
 
@@ -97,7 +97,7 @@ export async function deleteProduct(req: Request, res: Response) {
   const { id } = req.params
 
   await prisma.product.delete({
-    where: { id }
+    where: { id: id as string }
   })
 
   res.status(204).send()

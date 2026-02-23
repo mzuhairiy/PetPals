@@ -4,27 +4,43 @@ import type React from "react"
 
 import Link from "next/link"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { PawPrint, Lock } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const { login } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate authentication
-    setTimeout(() => {
+    try {
+      await login(email, password)
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      })
+      router.push("/")
+    } catch (error: any) {
+      toast({
+        title: "Sign in failed",
+        description: error.message || "Invalid email or password.",
+        variant: "destructive",
+      })
+    } finally {
       setIsLoading(false)
-      // Redirect to home page after successful login
-      window.location.href = "/"
-    }, 1500)
+    }
   }
 
   return (

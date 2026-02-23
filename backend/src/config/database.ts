@@ -1,12 +1,11 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
+import { PrismaPostgres } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
-const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-})
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPostgres(pool);
 
-export default prisma
+const prisma = new PrismaClient({ adapter });
 
-// Handle graceful shutdown
-process.on('beforeExit', async () => {
-  await prisma.$disconnect()
-})
+export default prisma;

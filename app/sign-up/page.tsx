@@ -4,11 +4,14 @@ import type React from "react"
 
 import Link from "next/link"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { PawPrint, Lock } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SignUpPage() {
   const [name, setName] = useState("")
@@ -16,17 +19,49 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const { register } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
 
-    // Simulate account creation
-    setTimeout(() => {
+    try {
+      await register(name, email, password)
+      toast({
+        title: "Account created!",
+        description: "Welcome to PetPals!",
+      })
+      router.push("/")
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
       setIsLoading(false)
-      // Redirect to home page after successful signup
-      window.location.href = "/"
-    }, 1500)
+    }
   }
 
   return (

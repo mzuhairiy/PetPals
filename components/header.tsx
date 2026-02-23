@@ -4,14 +4,16 @@ import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ShoppingCart, Search, Menu, X, User, Heart, PawPrint, Cat, Dog } from "lucide-react"
+import { ShoppingCart, Search, Menu, X, User, Heart, PawPrint, Cat, Dog, LogOut } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
+import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { cartItems } = useCart()
+  const { user, isAuthenticated, logout } = useAuth()
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
 
@@ -90,24 +92,46 @@ export default function Header() {
           </Link>
 
           <div className="hidden md:flex">
-            <Link href="/sign-in">
-              <Button variant="ghost" size="sm" className="mr-1">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/sign-up">
-              <Button variant="default" size="sm">
-                Sign Up
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Button variant="ghost" size="sm" className="mr-1">
+                  <User className="mr-2 h-4 w-4" />
+                  {user?.name}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/sign-in">
+                  <Button variant="ghost" size="sm" className="mr-1">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/sign-up">
+                  <Button variant="default" size="sm">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
           <div className="md:hidden">
-            <Link href="/sign-in">
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Account</span>
+            {isAuthenticated ? (
+              <Button variant="ghost" size="icon" onClick={logout}>
+                <LogOut className="h-5 w-5" />
+                <span className="sr-only">Sign Out</span>
               </Button>
-            </Link>
+            ) : (
+              <Link href="/sign-in">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">Account</span>
+                </Button>
+              </Link>
+            )}
           </div>
 
           <Link href="/cart">
@@ -163,20 +187,41 @@ export default function Header() {
             >
               About Us
             </Link>
-            <Link
-              href="/sign-in"
-              className="flex items-center gap-2 text-lg font-semibold"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="flex items-center gap-2 text-lg font-semibold"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Sign Up
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <div className="flex items-center gap-2 text-lg font-semibold">
+                  <User className="h-5 w-5" />
+                  {user?.name}
+                </div>
+                <button
+                  onClick={() => {
+                    logout()
+                    setIsMenuOpen(false)
+                  }}
+                  className="flex items-center gap-2 text-lg font-semibold"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/sign-in"
+                  className="flex items-center gap-2 text-lg font-semibold"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="flex items-center gap-2 text-lg font-semibold"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       )}

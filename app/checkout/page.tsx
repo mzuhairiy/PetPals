@@ -4,8 +4,10 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { useCart } from "@/components/cart-provider"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,30 +15,113 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { CreditCard, ShieldCheck, Truck, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { CreditCard, ShieldCheck, Truck, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"
 
 export default function CheckoutPage() {
   const { cartItems, clearCart } = useCart()
+  const { token, isAuthenticated } = useAuth()
   const { toast } = useToast()
+  const router = useRouter()
   const [orderPlaced, setOrderPlaced] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Form state
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "United States",
+    paymentMethod: "card",
+    cardName: "",
+    cardNumber: "",
+    expMonth: "",
+    expYear: "",
+    cvv: "",
+    notes: ""
+  })
 
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
   const shipping = subtotal > 35 ? 0 : 5.99
   const total = subtotal + shipping
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Simulate order placement
-    setTimeout(() => {
+    // Check if user is authenticated
+    if (!isAuthenticated || !token) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to place an order.",
+        variant: "destructive"
+      })
+      router.push("/sign-in?redirect=checkout")
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      // Prepare order data for API
+      const orderData = {
+        items: cartItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity
+        })),
+        shippingAddress: {
+          street: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country
+        },
+        paymentMethod: formData.paymentMethod
+      }
+
+      const response = await fetch(`${API_URL}/api/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(orderData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error?.message || "Failed to place order")
+      }
+
+      const result = await response.json()
+
       setOrderPlaced(true)
       clearCart()
       toast({
         title: "Order placed successfully!",
-        description: "Thank you for your purchase. Your order has been received.",
+        description: `Thank you for your purchase. Order ID: ${result.data.id}`,
       })
-    }, 1500)
+    } catch (error: any) {
+      console.error("Order error:", error)
+      toast({
+        title: "Failed to place order",
+        description: error.message || "An error occurred while placing your order. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (orderPlaced) {
@@ -93,48 +178,113 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" required />
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" required />
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
-                  <Input id="email" type="email" required />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isSubmitting}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" type="tel" required />
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isSubmitting}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="address">Street Address</Label>
-                  <Input id="address" required />
+                  <Input
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isSubmitting}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">City</Label>
-                    <Input id="city" required />
+                    <Input
+                      id="city"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="state">State / Province</Label>
-                    <Input id="state" required />
+                    <Input
+                      id="state"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="zipCode">ZIP / Postal Code</Label>
-                    <Input id="zipCode" required />
+                    <Input
+                      id="zipCode"
+                      name="zipCode"
+                      value={formData.zipCode}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="country">Country</Label>
-                    <Input id="country" defaultValue="United States" required />
+                    <Input
+                      id="country"
+                      name="country"
+                      value={formData.country}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                 </div>
               </div>
@@ -143,43 +293,84 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Payment Method</h2>
 
-                <RadioGroup defaultValue="card">
+                <RadioGroup
+                  value={formData.paymentMethod}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
+                  disabled={isSubmitting}
+                >
                   <div className="flex items-center space-x-2 border rounded-md p-4">
-                    <RadioGroupItem value="card" id="card" />
-                    <Label htmlFor="card" className="flex items-center">
+                    <RadioGroupItem value="card" id="card" disabled={isSubmitting} />
+                    <Label htmlFor="card" className="flex items-center cursor-pointer">
                       <CreditCard className="mr-2 h-4 w-4" />
                       Credit / Debit Card
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2 border rounded-md p-4">
-                    <RadioGroupItem value="paypal" id="paypal" />
-                    <Label htmlFor="paypal">PayPal</Label>
+                    <RadioGroupItem value="paypal" id="paypal" disabled={isSubmitting} />
+                    <Label htmlFor="paypal" className="cursor-pointer">PayPal</Label>
                   </div>
                 </RadioGroup>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="cardName">Name on Card</Label>
-                    <Input id="cardName" required />
+                    <Input
+                      id="cardName"
+                      name="cardName"
+                      value={formData.cardName}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input id="cardNumber" required />
+                    <Input
+                      id="cardNumber"
+                      name="cardNumber"
+                      value={formData.cardNumber}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div className="space-y-2 col-span-1">
                     <Label htmlFor="expMonth">Expiry Month</Label>
-                    <Input id="expMonth" placeholder="MM" required />
+                    <Input
+                      id="expMonth"
+                      name="expMonth"
+                      value={formData.expMonth}
+                      onChange={handleInputChange}
+                      placeholder="MM"
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div className="space-y-2 col-span-1">
                     <Label htmlFor="expYear">Expiry Year</Label>
-                    <Input id="expYear" placeholder="YY" required />
+                    <Input
+                      id="expYear"
+                      name="expYear"
+                      value={formData.expYear}
+                      onChange={handleInputChange}
+                      placeholder="YY"
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div className="space-y-2 col-span-2 sm:col-span-1">
                     <Label htmlFor="cvv">CVV</Label>
-                    <Input id="cvv" required />
+                    <Input
+                      id="cvv"
+                      name="cvv"
+                      value={formData.cvv}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                 </div>
               </div>
@@ -190,7 +381,14 @@ export default function CheckoutPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="notes">Order Notes (Optional)</Label>
-                  <Textarea id="notes" placeholder="Special instructions for delivery" />
+                  <Textarea
+                    id="notes"
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    placeholder="Special instructions for delivery"
+                    disabled={isSubmitting}
+                  />
                 </div>
               </div>
 
@@ -208,8 +406,15 @@ export default function CheckoutPage() {
                 </Label>
               </div>
 
-              <Button type="submit" className="w-full">
-                Place Order
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Place Order"
+                )}
               </Button>
             </div>
           </form>

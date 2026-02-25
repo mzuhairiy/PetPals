@@ -42,41 +42,54 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("cart", JSON.stringify(cartItems))
   }, [cartItems])
 
- const addToCart = (item: CartItem) => {
-  let message = ""
+  const addToCart = (item: CartItem) => {
+    let message = ""
+    let shouldToast = false
 
-  setCartItems((prevItems) => {
-    const existingItem = prevItems.find((i) => i.id === item.id)
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find((i) => i.id === item.id)
 
-    if (existingItem) {
-      message = `${item.name} quantity updated to ${existingItem.quantity + item.quantity}`
-      return prevItems.map((i) =>
-        i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
-      )
-    } else {
-      message = `${item.name} added to your cart`
-      return [...prevItems, { ...item, quantity: item.quantity }]
+      if (existingItem) {
+        message = `${item.name} quantity updated to ${existingItem.quantity + item.quantity}`
+        shouldToast = true
+        return prevItems.map((i) =>
+          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
+        )
+      } else {
+        message = `${item.name} added to your cart`
+        shouldToast = true
+        return [...prevItems, { ...item, quantity: item.quantity }]
+      }
+    })
+
+    // Defer toast to avoid React error
+    if (shouldToast) {
+      setTimeout(() => {
+        toast({
+          title: "Item added to cart",
+          description: message,
+        })
+      }, 0)
     }
-  })
-
-  // Fire toast after state update initiation (not inside updater)
-  toast({
-    title: "Item added to cart",
-    description: message,
-  })
-}
+  }
 
   const removeFromCart = (id: string) => {
+    // Find item BEFORE state update so we can use it in toast
+    const itemToRemove = cartItems.find((i) => i.id === id)
+    
     setCartItems((prevItems) => {
-      const itemToRemove = prevItems.find((i) => i.id === id)
-      if (itemToRemove) {
+      return prevItems.filter((item) => item.id !== id)
+    })
+
+    // Defer toast to avoid React error - call toast AFTER setCartItems
+    if (itemToRemove) {
+      setTimeout(() => {
         toast({
           title: "Item removed",
           description: `${itemToRemove.name} removed from your cart`,
         })
-      }
-      return prevItems.filter((item) => item.id !== id)
-    })
+      }, 0)
+    }
   }
 
   const updateQuantity = (id: string, quantity: number) => {
@@ -90,10 +103,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => {
     setCartItems([])
-    toast({
-      title: "Cart cleared",
-      description: "All items have been removed from your cart",
-    })
+    // Defer toast to avoid React error: Cannot update a component while rendering another
+    setTimeout(() => {
+      toast({
+        title: "Cart cleared",
+        description: "All items have been removed from your cart",
+      })
+    }, 0)
   }
 
   return (

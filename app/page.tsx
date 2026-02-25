@@ -3,13 +3,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Truck, RotateCcw, ShieldCheck, HeadphonesIcon, PawPrint, Cat, Dog } from 'lucide-react';
 import ProductCard from '@/components/product-card';
-import { products } from '@/lib/products';
+import { fetchProducts } from '@/lib/api';
 import HeroSlider from '@/components/hero-slider';
 
-export default function Home() {
-  const featuredProducts = products.filter((product) => product.featured).slice(0, 8);
-  const catProducts = products.filter((product) => product.pet === 'cat').slice(0, 4);
-  const dogProducts = products.filter((product) => product.pet === 'dog').slice(0, 4);
+export default async function Home() {
+  // Fetch products from API
+  const products = await fetchProducts();
+  
+  // Note: Backend returns uppercase category/pet, convert for comparison
+  const featuredProducts = products.filter((product: any) => product.featured).slice(0, 8);
+  const catProducts = products.filter((product: any) => product.pet === 'CAT').slice(0, 4);
+  const dogProducts = products.filter((product: any) => product.pet === 'DOG').slice(0, 4);
 
   return (
     <div className="flex flex-col min-h-screen">

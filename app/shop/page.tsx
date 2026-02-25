@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { products } from "@/lib/products"
+import { fetchProducts } from "@/lib/api"
 import ProductGrid from "@/components/product-grid"
 import ShopFilters from "@/components/shop-filters"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -14,50 +14,32 @@ interface ShopPageProps {
   }
 }
 
-export default function ShopPage({ searchParams }: ShopPageProps) {
-  // Filter products based on search params
-  let filteredProducts = [...products]
-
-  // Filter by category
+export default async function ShopPage({ searchParams }: ShopPageProps) {
+  // Convert frontend params to backend format
+  const filters: any = {}
+  
   if (searchParams.category) {
-    filteredProducts = filteredProducts.filter((product) => product.category === searchParams.category)
+    filters.category = searchParams.category.toUpperCase()
   }
-
-  // Filter by pet type
+  
   if (searchParams.pet) {
-    filteredProducts = filteredProducts.filter((product) => product.pet === searchParams.pet || product.pet === "both")
+    filters.pet = searchParams.pet.toUpperCase()
   }
-
-  // Filter by price range
-  if (searchParams.min) {
-    filteredProducts = filteredProducts.filter((product) => product.price >= Number.parseFloat(searchParams.min || "0"))
-  }
-
-  if (searchParams.max) {
-    filteredProducts = filteredProducts.filter(
-      (product) => product.price <= Number.parseFloat(searchParams.max || "1000"),
-    )
-  }
-
-  // Sort products
+  
   if (searchParams.sort) {
-    switch (searchParams.sort) {
-      case "price-asc":
-        filteredProducts.sort((a, b) => a.price - b.price)
-        break
-      case "price-desc":
-        filteredProducts.sort((a, b) => b.price - a.price)
-        break
-      case "rating":
-        filteredProducts.sort((a, b) => b.rating - a.rating)
-        break
-      case "newest":
-        filteredProducts.sort((a, b) => (a.isNew === b.isNew ? 0 : a.isNew ? -1 : 1))
-        break
-      default:
-        break
-    }
+    filters.sort = searchParams.sort
   }
+  
+  if (searchParams.min) {
+    filters.minPrice = searchParams.min
+  }
+  
+  if (searchParams.max) {
+    filters.maxPrice = searchParams.max
+  }
+
+  // Fetch products from API
+  let products = await fetchProducts(filters)
 
   return (
     <div className="container px-4 py-8 md:py-12">
@@ -68,7 +50,7 @@ export default function ShopPage({ searchParams }: ShopPageProps) {
 
         <div>
           <Suspense fallback={<ProductGridSkeleton />}>
-            <ProductGrid products={filteredProducts} />
+            <ProductGrid products={products} />
           </Suspense>
         </div>
       </div>

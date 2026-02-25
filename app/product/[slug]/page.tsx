@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { Star, Truck, RotateCcw, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { products } from '@/lib/products';
+import { fetchProducts } from '@/lib/api';
 import AddToCartButton from '@/components/add-to-cart-button';
 import ProductQuantity from '@/components/product-quantity';
 import RelatedProducts from '@/components/related-products';
@@ -20,14 +20,17 @@ interface ProductPageProps {
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
-  const product = products.find((p) => p.slug === slug);
+  // Fetch all products and find by slug
+  const products = await fetchProducts();
+  const product = products.find((p: any) => p.slug === slug);
 
   if (!product) {
     notFound();
   }
 
+  // Get related products (same category or pet, excluding current product)
   const relatedProducts = products
-    .filter((p) => p.slug !== product.slug && (p.category === product.category || p.pet === product.pet))
+    .filter((p: any) => p.slug !== product.slug && (p.category === product.category || p.pet === product.pet))
     .slice(0, 4);
 
   return (

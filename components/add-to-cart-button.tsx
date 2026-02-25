@@ -21,6 +21,7 @@ export default function AddToCartButton({ product, quantity = 1, className }: Ad
       name: product.name,
       price: product.price,
       image: product.image,
+      quantity: quantity
     })
   }
 

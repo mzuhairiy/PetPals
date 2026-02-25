@@ -32,6 +32,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
       name: product.name,
       price: product.price,
       image: product.image,
+      quantity: 1,
     });
   };
 
@@ -75,15 +76,16 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
 
           {!compact && <p className="text-muted-foreground text-sm mt-1 line-clamp-2">{product.description}</p>}
 
-          <div className="flex items-center mt-2">
+          <div className="flex items-center mt-2 gap-1">
             <div className="flex">
               {Array(5)
                 .fill(0)
                 .map((_, i) => (
-                  <Star key={i} className={cn('h-4 w-4', i < product.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300')} />
+                  <Star key={i} className={cn('h-4 w-4', i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300')} />
                 ))}
             </div>
-            {!compact && <span className="text-xs text-muted-foreground ml-1">({product.reviewCount})</span>}
+            <span className="text-xs font-medium text-yellow-600 ml-1">{typeof product.rating === 'number' ? product.rating.toFixed(1) : product.rating}</span>
+            {!compact && <span className="text-xs text-muted-foreground">({product.reviewCount} Reviews)</span>}
           </div>
         </CardContent>
 
@@ -105,7 +107,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
               <span className="sr-only">Add to cart</span>
             </Button>
           ) : (
-            <WishlistButton productId={product.id} size="sm" variant="ghost" className="p-0 h-8 w-8" />
+            <WishlistButton product={product} size="sm" variant="ghost" className="p-0 h-8 w-8" />
           )}
         </CardFooter>
       </Card>

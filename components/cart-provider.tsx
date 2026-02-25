@@ -13,7 +13,7 @@ export type CartItem = {
 
 type CartContextType = {
   cartItems: CartItem[]
-  addToCart: (item: Omit<CartItem, "quantity">) => void
+  addToCart: (item: CartItem) => void
   removeFromCart: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
@@ -42,20 +42,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("cart", JSON.stringify(cartItems))
   }, [cartItems])
 
- const addToCart = (item: Omit<CartItem, "quantity">) => {
+ const addToCart = (item: CartItem) => {
   let message = ""
 
   setCartItems((prevItems) => {
     const existingItem = prevItems.find((i) => i.id === item.id)
 
     if (existingItem) {
-      message = `${item.name} quantity updated to ${existingItem.quantity + 1}`
+      message = `${item.name} quantity updated to ${existingItem.quantity + item.quantity}`
       return prevItems.map((i) =>
-        i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+        i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
       )
     } else {
       message = `${item.name} added to your cart`
-      return [...prevItems, { ...item, quantity: 1 }]
+      return [...prevItems, { ...item, quantity: item.quantity }]
     }
   })
 

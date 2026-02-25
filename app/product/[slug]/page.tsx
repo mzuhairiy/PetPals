@@ -5,11 +5,9 @@ import { Star, Truck, RotateCcw, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchProducts } from '@/lib/api';
-import AddToCartButton from '@/components/add-to-cart-button';
-import ProductQuantity from '@/components/product-quantity';
+import AddToCartWithQuantity from '@/components/add-to-cart-with-quantity';
 import RelatedProducts from '@/components/related-products';
 import { cn } from '@/lib/utils';
-import WishlistButton from '@/components/wishlist-button';
 
 interface ProductPageProps {
   params: {
@@ -67,7 +65,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {Array(5)
                 .fill(0)
                 .map((_, i) => (
-                  <Star key={i} className={cn('h-5 w-5', i < product.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300')} />
+                  <Star key={i} className={cn('h-5 w-5', i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300')} />
                 ))}
             </div>
             <span className="ml-2 text-sm text-muted-foreground">
@@ -101,14 +99,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
             </div>
 
-            <div className="pt-4 space-y-4">
-              <ProductQuantity maxQuantity={product.stock} />
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <AddToCartButton product={product} className="flex-1" />
-                <WishlistButton productId={product.id} variant="outline" size="default" />
-              </div>
-            </div>
+            <AddToCartWithQuantity product={product} />
 
             <div className="border-t border-b py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex items-center">
@@ -201,7 +192,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       {Array(5)
                         .fill(0)
                         .map((_, i) => (
-                          <Star key={i} className={cn('h-5 w-5', i < product.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300')} />
+                          <Star key={i} className={cn('h-5 w-5', i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300')} />
                         ))}
                     </div>
                     <span className="ml-2 text-sm text-muted-foreground">Based on {product.reviewCount} reviews</span>

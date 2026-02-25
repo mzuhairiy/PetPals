@@ -210,16 +210,16 @@ export default function ShopFilters() {
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="sort-price-asc"
-                  checked={sort === "price-asc"}
-                  onCheckedChange={() => setSort(sort === "price-asc" ? "" : "price-asc")}
+                  checked={sort === "price_asc"}
+                  onCheckedChange={() => setSort(sort === "price_asc" ? "" : "price_asc")}
                 />
                 <Label htmlFor="sort-price-asc">Price: Low to High</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="sort-price-desc"
-                  checked={sort === "price-desc"}
-                  onCheckedChange={() => setSort(sort === "price-desc" ? "" : "price-desc")}
+                  checked={sort === "price_desc"}
+                  onCheckedChange={() => setSort(sort === "price_desc" ? "" : "price_desc")}
                 />
                 <Label htmlFor="sort-price-desc">Price: High to Low</Label>
               </div>

@@ -39,3 +39,9 @@ export class ValidationError extends AppError {
     ;(this as any).details = details
   }
 }
+
+export class BadRequestError extends AppError {
+  constructor(message: string) {
+    super(message, 400, 'BAD_REQUEST')
+  }
+}

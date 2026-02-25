@@ -41,7 +41,7 @@ async function main() {
   const products = [
     {
       name: 'Premium Dry Cat Food',
-      slug: 'premium-dry-cat-food-toy',
+      slug: 'premium-dry-cat-food',
       description: 'High-quality dry food for adult cats with balanced nutrition and great taste.',
       price: 24.99,
       image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=600&auto=format&fit=crop',

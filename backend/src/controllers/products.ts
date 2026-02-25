@@ -36,15 +36,24 @@ export async function getProducts(req: Request, res: Response) {
   if (sort === 'price_asc') orderBy = { price: 'asc' }
   if (sort === 'price_desc') orderBy = { price: 'desc' }
   if (sort === 'rating') orderBy = { rating: 'desc' }
+  if (sort === 'newest') orderBy = { isNew: 'desc' }
 
   const products = await prisma.product.findMany({
     where,
     orderBy
   })
 
+  // Convert Decimal fields to numbers for JSON serialization
+  const serializedProducts = products.map(product => ({
+    ...product,
+    price: Number(product.price),
+    originalPrice: product.originalPrice ? Number(product.originalPrice) : null,
+    rating: Number(product.rating)
+  }))
+
   res.json({
     success: true,
-    data: products
+    data: serializedProducts
   })
 }
 
@@ -59,9 +68,17 @@ export async function getProduct(req: Request, res: Response) {
     throw new NotFoundError('Product')
   }
 
+  // Convert Decimal fields to numbers for JSON serialization
+  const serializedProduct = {
+    ...product,
+    price: Number(product.price),
+    originalPrice: product.originalPrice ? Number(product.originalPrice) : null,
+    rating: Number(product.rating)
+  }
+
   res.json({
     success: true,
-    data: product
+    data: serializedProduct
   })
 }
 

@@ -192,3 +192,4 @@ function useToast() {
 }
 
 export { useToast, toast }
+export type { ToastActionElement, ToastProps, ToasterToast, State, Action }

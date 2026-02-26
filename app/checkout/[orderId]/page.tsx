@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, use, useRef } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2, CheckCircle, XCircle, AlertCircle, ArrowLeft } from "lucide-react"
+import { Loader2, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -13,13 +13,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || ""
 
 interface OrderData {
-  orderId: string
+  id: string
   total: number
   status: string
   items: Array<{
-    product: {
-      name: string
-    }
+    nameSnapshot: string
     quantity: number
     price: number
   }>
@@ -34,190 +32,149 @@ export default function CheckoutPaymentPage({ params }: { params: Promise<{ orde
 
   const [orderData, setOrderData] = useState<OrderData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [snapToken, setSnapToken] = useState<string | null>(null)
-  const isInitialized = useRef(false)
+  const [isCreatingToken, setIsCreatingToken] = useState(false)
 
-  // Check for payment result from URL params
-  const paymentStatus = searchParams.get("status")
-  const paymentOrderId = searchParams.get("order_id")
+  // Handle Back button - save form state before leaving
+  const handleBack = () => {
+    router.push("/checkout")
+  }
 
-  // Reset initialization when orderId changes
+  // Handle payment success - redirect to checkout with success state
+  const handlePaymentSuccess = () => {
+    router.push("/checkout?success=true")
+  }
+
+  // Fetch order details on page load
   useEffect(() => {
-    isInitialized.current = false
-  }, [orderId])
-
-  useEffect(() => {
-    // If we have payment status in URL, show appropriate message
-    if (paymentStatus) {
-      if (paymentStatus === "success") {
-        toast({
-          title: "Payment Successful",
-          description: "Your order has been placed successfully!",
-          variant: "default"
-        })
-        router.push("/account?tab=orders")
-      } else if (paymentStatus === "pending") {
-        toast({
-          title: "Payment Pending",
-          description: "Your payment is being processed. We'll notify you once it's confirmed.",
-          variant: "default"
-        })
-      } else if (paymentStatus === "error") {
-        toast({
-          title: "Payment Failed",
-          description: "There was an issue with your payment. Please try again.",
-          variant: "destructive"
-        })
-      }
-      return
-    }
-
-    // Otherwise, load order and initialize payment
-    const initializePayment = async () => {
-      // Prevent double initialization (React StrictMode)
-      if (isInitialized.current) {
-        console.log("Already initialized, skipping...")
-        return
-      }
-
+    const fetchOrder = async () => {
       if (!isAuthenticated || !token) {
-        console.log("Not authenticated, redirecting to sign-in")
         router.push("/sign-in?redirect=checkout")
         return
       }
 
-      // Mark as initialized AFTER auth check passes
-      isInitialized.current = true
-
       try {
-        console.log("Fetching order details for:", orderId)
-        // Fetch order details
-        const orderResponse = await fetch(`${API_URL}/api/orders/${orderId}`, {
+        const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
           headers: {
             "Authorization": `Bearer ${token}`
           }
         })
 
-        console.log("Order response status:", orderResponse.status)
-
-        if (!orderResponse.ok) {
-          const errorData = await orderResponse.json()
-          throw new Error(errorData.error?.message || "Failed to fetch order")
+        if (!response.ok) {
+          throw new Error("Failed to fetch order")
         }
 
-        const orderResult = await orderResponse.json()
-        console.log("Order result:", orderResult)
-        setOrderData(orderResult.data)
-
-        // Get Snap token
-        console.log("Getting snap token for order:", orderId)
-        const snapResponse = await fetch(`${API_URL}/api/payments/midtrans/snap`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            orderId
-          })
-        })
-
-        console.log("Snap response status:", snapResponse.status)
-
-        // Handle any 2xx response as success
-        const isSuccess = snapResponse.status >= 200 && snapResponse.status < 300
-        const snapResult = await snapResponse.json()
-        console.log("Snap result:", snapResult)
-        
-        if (!isSuccess) {
-          console.error("Snap error response:", snapResult)
-          throw new Error(snapResult.error?.message || `Failed to initialize payment (${snapResponse.status})`)
-        }
-
-        setSnapToken(snapResult.data.snapToken)
-
+        const result = await response.json()
+        setOrderData(result.data)
       } catch (error: any) {
-        console.error("Payment initialization error:", error)
-        
-        // Check if it's a network error
-        if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-          toast({
-            title: "Connection Error",
-            description: "Unable to connect to the server. Please check your internet connection and try again.",
-            variant: "destructive"
-          })
-        } else {
-          toast({
-            title: "Error",
-            description: error.message || "Failed to initialize payment",
-            variant: "destructive"
-          })
-        }
+        console.error("Error fetching order:", error)
+        toast({
+          title: "Error",
+          description: error.message || "Failed to load order",
+          variant: "destructive"
+        })
       } finally {
         setIsLoading(false)
       }
     }
 
-    initializePayment()
-  }, [orderId, token, isAuthenticated])
+    fetchOrder()
+  }, [orderId, token, isAuthenticated, router, toast])
 
-  // Handle Snap payment
-  useEffect(() => {
-    if (!snapToken || typeof window === "undefined") return
+  // Handle Pay Now button click
+  const handlePayNow = async () => {
+    if (!token) {
+      router.push("/sign-in?redirect=checkout")
+      return
+    }
 
-    // Load Snap JS
-    const script = document.createElement("script")
-    script.src = "https://app.sandbox.midtrans.com/snap/snap.js"
-    script.setAttribute("data-client-key", MIDTRANS_CLIENT_KEY)
-    script.async = true
+    setIsCreatingToken(true)
 
-    script.onload = () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const snap = (window as any).snap
-      if (snap) {
-        setIsProcessing(true)
-        snap.pay(snapToken, {
-          onSuccess: (result: any) => {
-            console.log("Payment success:", result)
-            toast({
-              title: "Payment Successful",
-              description: "Your order has been placed successfully!",
-              variant: "default"
-            })
-            // Clear cart and redirect to orders
-            router.push("/account?tab=orders")
-          },
-          onPending: (result: any) => {
-            console.log("Payment pending:", result)
-            toast({
-              title: "Payment Pending",
-              description: "Your payment is being processed.",
-              variant: "default"
-            })
-          },
-          onError: (result: any) => {
-            console.error("Payment error:", result)
-            toast({
-              title: "Payment Failed",
-              description: "Please try again or use a different payment method.",
-              variant: "destructive"
-            })
-          },
-          onClose: () => {
-            console.log("Customer closed the popup")
-            setIsProcessing(false)
-          }
-        })
+    try {
+      // Create Snap token
+      const snapResponse = await fetch(`${API_URL}/api/payments/midtrans/snap`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ orderId })
+      })
+
+      const snapResult = await snapResponse.json()
+
+      if (!snapResponse.ok || !snapResult.success) {
+        throw new Error(snapResult.error?.message || "Failed to create payment token")
       }
-    }
 
-    document.body.appendChild(script)
+      const snapToken = snapResult.data.snapToken
 
-    return () => {
-      document.body.removeChild(script)
+      // Load Snap JS and open modal
+      if (typeof window !== "undefined" && snapToken) {
+        // Dynamically load Snap JS
+        const existingScript = document.querySelector('script[data-client-key]')
+        if (!existingScript) {
+          const script = document.createElement("script")
+          script.src = "https://app.sandbox.midtrans.com/snap/snap.js"
+          script.setAttribute("data-client-key", MIDTRANS_CLIENT_KEY)
+          script.async = true
+          document.body.appendChild(script)
+
+          script.onload = () => {
+            openSnapModal(snapToken)
+          }
+        } else {
+          openSnapModal(snapToken)
+        }
+      }
+    } catch (error: any) {
+      console.error("Payment error:", error)
+      toast({
+        title: "Payment Error",
+        description: error.message || "Failed to initialize payment",
+        variant: "destructive"
+      })
+    } finally {
+      setIsCreatingToken(false)
     }
-  }, [snapToken, router, toast])
+  }
+
+  // Open Snap modal
+  const openSnapModal = (snapToken: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const snap = (window as any).snap
+    if (snap) {
+      snap.pay(snapToken, {
+        onSuccess: (result: unknown) => {
+          console.log("Payment success:", result)
+          toast({
+            title: "Payment Successful",
+            description: "Your order has been placed successfully!",
+            variant: "default"
+          })
+          handlePaymentSuccess()
+        },
+        onPending: (result: unknown) => {
+          console.log("Payment pending:", result)
+          toast({
+            title: "Payment Pending",
+            description: "Your payment is being processed.",
+            variant: "default"
+          })
+        },
+        onError: (result: unknown) => {
+          console.error("Payment error:", result)
+          toast({
+            title: "Payment Failed",
+            description: "Please try again or use a different payment method.",
+            variant: "destructive"
+          })
+        },
+        onClose: () => {
+          console.log("Customer closed the popup")
+        }
+      })
+    }
+  }
 
   if (isLoading) {
     return (
@@ -234,7 +191,6 @@ export default function CheckoutPaymentPage({ params }: { params: Promise<{ orde
     return (
       <div className="container flex items-center justify-center min-h-screen px-4">
         <div className="text-center">
-          <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Order Not Found</h2>
           <p className="text-muted-foreground mb-4">We couldn't find this order.</p>
           <Button onClick={() => router.push("/shop")}>
@@ -248,13 +204,20 @@ export default function CheckoutPaymentPage({ params }: { params: Promise<{ orde
 
   return (
     <div className="container px-4 py-8 md:py-12">
+      <div className="mb-8">
+        <Button variant="ghost" onClick={handleBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Checkout
+        </Button>
+      </div>
+
       <Card className="max-w-lg mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6">Complete Your Payment</h1>
 
         <div className="space-y-4 mb-6">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Order ID</span>
-            <span className="font-medium">{orderData.orderId}</span>
+            <span className="font-medium">{orderData.id.slice(0, 8)}...</span>
           </div>
 
           <div className="flex justify-between">
@@ -266,43 +229,29 @@ export default function CheckoutPaymentPage({ params }: { params: Promise<{ orde
 
           <div className="flex justify-between text-lg font-semibold">
             <span>Total</span>
-            <span>${Number(orderData.total).toFixed(2)}</span>
+            <span>Rp {orderData.total.toLocaleString('id-ID')}</span>
           </div>
         </div>
 
-        {isProcessing ? (
-          <div className="text-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Opening payment window...</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground text-center">
-              You will be redirected to Midtrans to complete your payment securely.
-            </p>
+        <Button
+          onClick={handlePayNow}
+          disabled={isCreatingToken}
+          className="w-full"
+        >
+          {isCreatingToken ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Pay Now"
+          )}
+        </Button>
 
-            <Button
-              onClick={() => window.location.reload()}
-              className="w-full"
-            >
-              Pay Now
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={() => router.push("/account?tab=orders")}
-              className="w-full"
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
+        <p className="text-center text-sm text-muted-foreground mt-4">
+          Test mode: Use card number 4811 1111 1111 1114
+        </p>
       </Card>
-
-      <p className="text-center text-sm text-muted-foreground mt-6">
-        <AlertCircle className="inline h-4 w-4 mr-1" />
-        Test mode: Use card number 4811 1111 1111 1114, any future date, any CVC
-      </p>
     </div>
   )
 }

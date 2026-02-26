@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ShoppingCart, Search, Menu, X, User, Heart, PawPrint, Cat, Dog, LogOut, Loader2 } from "lucide-react"
+import { ShoppingCart, Search, Menu, X, User, Heart, PawPrint, Cat, Dog, LogOut, Loader2, Package } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
@@ -212,6 +212,12 @@ export default function Header() {
           <div className="hidden md:flex">
             {isAuthenticated ? (
               <>
+                <Link href="/orders">
+                  <Button variant="ghost" size="sm" className="mr-1">
+                    <Package className="mr-2 h-4 w-4" />
+                    Orders
+                  </Button>
+                </Link>
                 <Link href="/account">
                   <Button variant="ghost" size="sm" className="mr-1">
                     <User className="mr-2 h-4 w-4" />
@@ -309,6 +315,14 @@ export default function Header() {
             </Link>
             {isAuthenticated ? (
               <>
+                <Link
+                  href="/orders"
+                  className="flex items-center gap-2 text-lg font-semibold"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Package className="h-5 w-5" />
+                  Orders
+                </Link>
                 <Link
                   href="/account"
                   className="flex items-center gap-2 text-lg font-semibold"

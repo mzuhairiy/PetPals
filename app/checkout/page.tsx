@@ -2,9 +2,9 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { useCart } from "@/components/cart-provider"
 import { useAuth } from "@/contexts/AuthContext"
@@ -29,7 +29,48 @@ export default function CheckoutPage() {
   const { token, isAuthenticated, user } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+
+  // Check for success state from URL
+  useEffect(() => {
+    const success = searchParams.get("success")
+    if (success === "true") {
+      setShowSuccess(true)
+      // Clear the URL param
+      router.replace("/checkout")
+    }
+  }, [searchParams, router])
+
+  // Load saved form data from sessionStorage on mount
+  useEffect(() => {
+    const savedData = sessionStorage.getItem("checkout_form_data")
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData)
+        setFormData(prev => ({ ...prev, ...parsed }))
+      } catch (e) {
+        console.error("Failed to parse saved form data", e)
+      }
+    }
+  }, [])
+
+  // Save form data to sessionStorage whenever it changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => {
+      const newData = { ...prev, [name]: value }
+      // Save to sessionStorage
+      sessionStorage.setItem("checkout_form_data", JSON.stringify(newData))
+      return newData
+    })
+  }
+
+  // Clear form data from sessionStorage after successful order
+  const clearFormData = () => {
+    sessionStorage.removeItem("checkout_form_data")
+  }
 
   // Form state
   const [formData, setFormData] = useState({
@@ -50,11 +91,6 @@ export default function CheckoutPage() {
   const tax = Number((subtotal * (TAX_PERCENTAGE / 100)).toFixed(2))
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_COST
   const total = Number((subtotal + tax + shipping).toFixed(2))
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -126,8 +162,9 @@ export default function CheckoutPage() {
       console.log("Order ID:", orderId)
       console.log("Redirecting to checkout page...")
 
-      // Clear cart and redirect to payment page
+      // Clear cart and form data, then redirect to payment page
       clearCart()
+      clearFormData()
       router.push(`/checkout/${orderId}`)
 
     } catch (error: any) {
@@ -150,6 +187,35 @@ export default function CheckoutPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Show success screen after payment
+  if (showSuccess) {
+    return (
+      <div className="container px-4 py-16 text-center">
+        <div className="max-w-md mx-auto">
+          <div className="mb-6">
+            <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+              <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold mb-4">Order Placed Successfully!</h1>
+          <p className="text-muted-foreground mb-8">
+            Thank you for your order. Your payment has been processed and your order is being prepared for shipment.
+          </p>
+          <div className="space-y-4">
+            <Button asChild className="w-full">
+              <Link href="/shop">Continue Shopping</Link>
+            </Button>
+            <Button variant="outline" asChild className="w-full">
+              <Link href="/orders">View Order History</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (cartItems.length === 0) {

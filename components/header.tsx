@@ -200,12 +200,14 @@ export default function Header() {
             </Button>
           )}
 
-          <Link href="/wishlist">
-            <Button variant="ghost" size="icon">
-              <Heart className="h-5 w-5" />
-              <span className="sr-only">Wishlist</span>
-            </Button>
-          </Link>
+          {isAuthenticated && (
+            <Link href="/wishlist">
+              <Button variant="ghost" size="icon">
+                <Heart className="h-5 w-5" />
+                <span className="sr-only">Wishlist</span>
+              </Button>
+            </Link>
+          )}
 
           <div className="hidden md:flex">
             {isAuthenticated ? (

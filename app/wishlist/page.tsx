@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Heart, ShoppingBag, ShoppingCart, Trash2 } from "lucide-react"
+import { Heart, ShoppingBag, ShoppingCart, Trash2, Loader2 } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { useWishlist } from "@/components/wishlist-provider"
+import { useAuth } from "@/contexts/AuthContext"
 import { fetchProducts } from "@/lib/api"
 import type { Product } from "@/lib/types"
 
@@ -15,6 +17,20 @@ export default function WishlistPage() {
   const { wishlistItems, removeFromWishlist } = useWishlist()
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const { addToCart } = useCart()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const router = useRouter()
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
+
+  // Auth guard - redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading) {
+      if (!isAuthenticated) {
+        router.push("/sign-in")
+      } else {
+        setIsInitialLoading(false)
+      }
+    }
+  }, [authLoading, isAuthenticated, router])
 
   // Load all products from API
   useEffect(() => {
@@ -42,6 +58,18 @@ export default function WishlistPage() {
 
   const handleRemove = (productId: string) => {
     removeFromWishlist(productId)
+  }
+
+  // Show loading while checking auth
+  if (authLoading || isInitialLoading) {
+    return (
+      <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   if (wishlistItems.length === 0) {

@@ -1,21 +1,84 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ShoppingCart, Search, Menu, X, User, Heart, PawPrint, Cat, Dog, LogOut } from "lucide-react"
+import { ShoppingCart, Search, Menu, X, User, Heart, PawPrint, Cat, Dog, LogOut, Loader2 } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
+import { searchProducts } from "@/lib/api"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [showResults, setShowResults] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
   const { cartItems } = useCart()
   const { user, isAuthenticated, logout } = useAuth()
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
+
+  // Debounced search
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setSearchResults([])
+      setShowResults(false)
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true)
+      try {
+        const results = await searchProducts(searchQuery)
+        setSearchResults(results)
+        setShowResults(results.length > 0)
+      } catch (error) {
+        console.error("Search error:", error)
+      } finally {
+        setIsSearching(false)
+      }
+    }, 300) // 300ms debounce
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`)
+      closeSearch()
+    }
+  }
+
+  const closeSearch = () => {
+    setIsSearchOpen(false)
+    setSearchQuery("")
+    setSearchResults([])
+    setShowResults(false)
+  }
+
+  const handleResultClick = (slug: string) => {
+    router.push(`/product/${slug}`)
+    closeSearch()
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -58,16 +121,69 @@ export default function Header() {
           </Link>
         </nav>
 
-        <div className={cn("transition-all duration-200 ease-in-out", isSearchOpen ? "flex-1" : "w-0 overflow-hidden")}>
+        <div className={cn("transition-all duration-200 ease-in-out relative", isSearchOpen ? "flex-1" : "w-0 overflow-hidden")}>
           {isSearchOpen && (
-            <div className="relative w-full max-w-md mx-auto">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search products..." className="w-full pl-8 rounded-full" />
+            <div ref={searchRef} className="relative w-full max-w-md mx-auto">
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="search" 
+                  placeholder="Search products..." 
+                  className="w-full pl-8 pr-10 rounded-full"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => searchResults.length > 0 && setShowResults(true)}
+                  autoFocus
+                />
+                {isSearching && (
+                  <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </form>
+              
+              {/* Search Results Dropdown */}
+              {showResults && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg overflow-hidden z-50">
+                  {searchResults.map((product) => (
+                    <button
+                      key={product.id}
+                      onClick={() => handleResultClick(product.slug)}
+                      className="w-full flex items-center gap-3 p-3 hover:bg-muted text-left transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                        <img 
+                          src={product.image || "/placeholder.svg?height=40&width=40"} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">${Number(product.price).toFixed(2)}</p>
+                      </div>
+                    </button>
+                  ))}
+                  <button
+                    onClick={handleSearch}
+                    className="w-full p-3 text-sm text-primary hover:bg-muted text-center border-t"
+                  >
+                    View all results for "{searchQuery}"
+                  </button>
+                </div>
+              )}
+
+              {/* No results message */}
+              {searchQuery.trim().length >= 2 && !isSearching && searchResults.length === 0 && showResults && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg p-4 z-50">
+                  <p className="text-sm text-muted-foreground text-center">No products found for "{searchQuery}"</p>
+                </div>
+              )}
+
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 className="absolute right-0 top-0"
-                onClick={() => setIsSearchOpen(false)}
+                onClick={closeSearch}
               >
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close search</span>

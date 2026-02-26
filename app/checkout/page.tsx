@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { CreditCard, ShieldCheck, Truck, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
 export default function CheckoutPage() {
   const { cartItems, clearCart } = useCart()

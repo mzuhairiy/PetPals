@@ -11,6 +11,7 @@ interface ShopPageProps {
     sort?: string
     min?: string
     max?: string
+    search?: string
   }
 }
 
@@ -37,13 +38,24 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   if (searchParams.max) {
     filters.maxPrice = searchParams.max
   }
+  
+  if (searchParams.search) {
+    filters.search = searchParams.search
+  }
 
   // Fetch products from API
   let products = await fetchProducts(filters)
 
   return (
     <div className="container px-4 py-8 md:py-12">
-      <h1 className="text-3xl font-bold mb-8">Shop Pet Products</h1>
+      <h1 className="text-3xl font-bold mb-8">
+        {searchParams.search 
+          ? `Search Results for "${searchParams.search}"` 
+          : searchParams.category 
+            ? `${searchParams.category.charAt(0).toUpperCase() + searchParams.category.slice(1)} Products`
+            : "Shop Pet Products"
+        }
+      </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
         <ShopFilters />

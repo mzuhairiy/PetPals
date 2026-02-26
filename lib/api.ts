@@ -69,3 +69,28 @@ export async function fetchProductBySlug(slug: string): Promise<any> {
   const products = await fetchProducts()
   return products.find(function(p: any) { return p.slug === slug })
 }
+
+export async function searchProducts(query: string): Promise<any[]> {
+  if (!query || query.trim().length < 2) {
+    return []
+  }
+  
+  const url = `${API_URL}/api/products?search=${encodeURIComponent(query.trim())}`
+  
+  try {
+    const response = await fetch(url, {
+      next: { revalidate: 0 }
+    })
+    
+    if (!response.ok) {
+      return []
+    }
+    
+    const result = await response.json()
+    // Return first 5 results for dropdown
+    return (result.data || []).slice(0, 5)
+  } catch (err) {
+    console.warn('Search failed:', err)
+    return []
+  }
+}

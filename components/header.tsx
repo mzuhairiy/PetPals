@@ -210,10 +210,12 @@ export default function Header() {
           <div className="hidden md:flex">
             {isAuthenticated ? (
               <>
-                <Button variant="ghost" size="sm" className="mr-1">
-                  <User className="mr-2 h-4 w-4" />
-                  {user?.name}
-                </Button>
+                <Link href="/account">
+                  <Button variant="ghost" size="sm" className="mr-1">
+                    <User className="mr-2 h-4 w-4" />
+                    {user?.name}
+                  </Button>
+                </Link>
                 <Button variant="ghost" size="sm" onClick={logout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
@@ -305,10 +307,14 @@ export default function Header() {
             </Link>
             {isAuthenticated ? (
               <>
-                <div className="flex items-center gap-2 text-lg font-semibold">
+                <Link
+                  href="/account"
+                  className="flex items-center gap-2 text-lg font-semibold"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   <User className="h-5 w-5" />
                   {user?.name}
-                </div>
+                </Link>
                 <button
                   onClick={() => {
                     logout()

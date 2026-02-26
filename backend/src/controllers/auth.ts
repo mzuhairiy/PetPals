@@ -169,3 +169,32 @@ export async function resetPassword(req: Request, res: Response) {
     throw new BadRequestError('Invalid or expired reset token')
   }
 }
+
+export async function updateProfile(req: AuthRequest, res: Response) {
+  const { name } = req.body
+
+  if (!name || typeof name !== 'string') {
+    throw new BadRequestError('Name is required')
+  }
+
+  if (name.trim().length < 1) {
+    throw new BadRequestError('Name cannot be empty')
+  }
+
+  const user = await prisma.user.update({
+    where: { id: req.user!.userId },
+    data: { name: name.trim() },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      createdAt: true
+    }
+  })
+
+  res.json({
+    success: true,
+    data: user
+  })
+}

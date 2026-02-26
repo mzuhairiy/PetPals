@@ -5,42 +5,45 @@ import ShopFilters from "@/components/shop-filters"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface ShopPageProps {
-  searchParams: {
+  searchParams: Promise<{
     category?: string
     pet?: string
     sort?: string
     min?: string
     max?: string
     search?: string
-  }
+  }>
 }
 
 export default async function ShopPage({ searchParams }: ShopPageProps) {
+  // Await searchParams as required in Next.js 14+
+  const params = await searchParams
+  
   // Convert frontend params to backend format
   const filters: any = {}
   
-  if (searchParams.category) {
-    filters.category = searchParams.category.toUpperCase()
+  if (params.category) {
+    filters.category = params.category.toUpperCase()
   }
   
-  if (searchParams.pet) {
-    filters.pet = searchParams.pet.toUpperCase()
+  if (params.pet) {
+    filters.pet = params.pet.toUpperCase()
   }
   
-  if (searchParams.sort) {
-    filters.sort = searchParams.sort
+  if (params.sort) {
+    filters.sort = params.sort
   }
   
-  if (searchParams.min) {
-    filters.minPrice = searchParams.min
+  if (params.min) {
+    filters.minPrice = params.min
   }
   
-  if (searchParams.max) {
-    filters.maxPrice = searchParams.max
+  if (params.max) {
+    filters.maxPrice = params.max
   }
   
-  if (searchParams.search) {
-    filters.search = searchParams.search
+  if (params.search) {
+    filters.search = params.search
   }
 
   // Fetch products from API
@@ -49,10 +52,10 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   return (
     <div className="container px-4 py-8 md:py-12">
       <h1 className="text-3xl font-bold mb-8">
-        {searchParams.search 
-          ? `Search Results for "${searchParams.search}"` 
-          : searchParams.category 
-            ? `${searchParams.category.charAt(0).toUpperCase() + searchParams.category.slice(1)} Products`
+        {params.search 
+          ? `Search Results for "${params.search}"` 
+          : params.category 
+            ? `${params.category.charAt(0).toUpperCase() + params.category.slice(1)} Products`
             : "Shop Pet Products"
         }
       </h1>

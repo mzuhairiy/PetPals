@@ -32,8 +32,9 @@ export const updateProductSchema = createProductSchema.partial()
 
 export const createOrderSchema = z.object({
   items: z.array(z.object({
-    productId: z.string().uuid('Invalid product ID'),
-    quantity: z.number().int().min(1, 'Quantity must be at least 1')
+    productId: z.string().min(1, 'Product ID is required'),
+    quantity: z.number().int().min(1, 'Quantity must be at least 1'),
+    price: z.number().optional()
   })).min(1, 'Order must have at least one item'),
   shippingAddress: z.object({
     street: z.string().min(1, 'Street is required'),
@@ -42,7 +43,7 @@ export const createOrderSchema = z.object({
     zipCode: z.string().min(1, 'Zip code is required'),
     country: z.string().min(1, 'Country is required')
   }),
-  paymentMethod: z.string().min(1, 'Payment method is required')
+  paymentMethod: z.string().optional()
 })
 
 export type RegisterInput = z.infer<typeof registerSchema>

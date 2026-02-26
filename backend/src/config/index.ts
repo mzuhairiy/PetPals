@@ -19,5 +19,21 @@ export const config = {
   cors: {
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true
+  },
+  midtrans: {
+    serverKey: process.env.MIDTRANS_SERVER_KEY || '',
+    clientKey: process.env.MIDTRANS_CLIENT_KEY || '',
+    isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
+    getBaseUrl: function() {
+      // For Snap API, use app domain (not api domain)
+      return this.isProduction 
+        ? 'https://app.midtrans.com' 
+        : 'https://app.sandbox.midtrans.com'
+    }
+  },
+  checkout: {
+    taxPercentage: 10, // 10% tax
+    freeShippingThreshold: 560000, // Free shipping over 560,000 IDR (~$35)
+    defaultShippingCost: 25000 // 25,000 IDR shipping (~$1.50)
   }
 }

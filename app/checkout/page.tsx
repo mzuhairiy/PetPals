@@ -12,45 +12,44 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { CreditCard, ShieldCheck, Truck, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react"
+import { ShieldCheck, Truck, ArrowLeft, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
+// Config from backend
+const TAX_PERCENTAGE = 10
+const FREE_SHIPPING_THRESHOLD = 5
+const DEFAULT_SHIPPING_COST = 5.99
+
 export default function CheckoutPage() {
   const { cartItems, clearCart } = useCart()
-  const { token, isAuthenticated } = useAuth()
+  const { token, isAuthenticated, user } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
-  const [orderPlaced, setOrderPlaced] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Form state
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
+    firstName: user?.name?.split(' ')[0] || "",
+    lastName: user?.name?.split(' ').slice(1).join(' ') || "",
+    email: user?.email || "",
     phone: "",
     address: "",
     city: "",
     state: "",
     zipCode: "",
     country: "United States",
-    paymentMethod: "card",
-    cardName: "",
-    cardNumber: "",
-    expMonth: "",
-    expYear: "",
-    cvv: "",
     notes: ""
   })
 
+  // Calculate totals
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
-  const shipping = subtotal > 35 ? 0 : 5.99
-  const total = subtotal + shipping
+  const tax = Number((subtotal * (TAX_PERCENTAGE / 100)).toFixed(2))
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_COST
+  const total = Number((subtotal + tax + shipping).toFixed(2))
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -71,77 +70,86 @@ export default function CheckoutPage() {
       return
     }
 
+    // Prevent empty cart
+    if (cartItems.length === 0) {
+      toast({
+        title: "Cart is empty",
+        description: "Please add items to your cart before checkout.",
+        variant: "destructive"
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      // Prepare order data for API
-      const orderData = {
-        items: cartItems.map(item => ({
-          productId: item.id,
-          quantity: item.quantity
-        })),
-        shippingAddress: {
-          street: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-          country: formData.country
-        },
-        paymentMethod: formData.paymentMethod
-      }
-
-      const response = await fetch(`${API_URL}/api/orders`, {
+      // Create Order only (payment will be done on next page)
+      console.log("Creating order with API_URL:", API_URL)
+      const orderResponse = await fetch(`${API_URL}/api/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(orderData)
+        body: JSON.stringify({
+          items: cartItems.map(item => ({
+            productId: item.id,
+            quantity: item.quantity
+          })),
+          shippingAddress: {
+            street: formData.address,
+            city: formData.city,
+            state: formData.state,
+            zipCode: formData.zipCode,
+            country: formData.country
+          }
+        })
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error?.message || "Failed to place order")
+      console.log("Order response status:", orderResponse.status)
+      console.log("Order response ok:", orderResponse.ok)
+
+      if (!orderResponse.ok) {
+        const errorData = await orderResponse.json()
+        console.error("Order creation error response:", errorData)
+        throw new Error(errorData.error?.message || "Failed to create order")
       }
 
-      const result = await response.json()
+      const orderResult = await orderResponse.json()
+      console.log("Order result:", orderResult)
+      
+      if (!orderResult.success) {
+        throw new Error(orderResult.error?.message || "Failed to create order")
+      }
+      
+      const { orderId } = orderResult.data
+      console.log("Order ID:", orderId)
+      console.log("Redirecting to checkout page...")
 
-      setOrderPlaced(true)
+      // Clear cart and redirect to payment page
       clearCart()
-      toast({
-        title: "Order placed successfully!",
-        description: `Thank you for your purchase. Order ID: ${result.data.id}`,
-      })
+      router.push(`/checkout/${orderId}`)
+
     } catch (error: any) {
       console.error("Order error:", error)
-      toast({
-        title: "Failed to place order",
-        description: error.message || "An error occurred while placing your order. Please try again.",
-        variant: "destructive"
-      })
+      
+      // Check if it's a network error
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        toast({
+          title: "Connection Error",
+          description: "Unable to connect to the server. Please check if the backend is running on port 5000.",
+          variant: "destructive"
+        })
+      } else {
+        toast({
+          title: "Failed to create order",
+          description: error.message || "An error occurred. Please try again.",
+          variant: "destructive"
+        })
+      }
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  if (orderPlaced) {
-    return (
-      <div className="container px-4 py-16 text-center">
-        <CheckCircle2 className="h-16 w-16 mx-auto text-green-500" />
-        <h1 className="mt-6 text-3xl font-bold">Order Confirmed!</h1>
-        <p className="mt-2 text-muted-foreground max-w-md mx-auto">
-          Thank you for your purchase. We've sent a confirmation email with your order details.
-        </p>
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild>
-            <Link href="/shop">Continue Shopping</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/">Return to Home</Link>
-          </Button>
-        </div>
-      </div>
-    )
   }
 
   if (cartItems.length === 0) {
@@ -289,92 +297,6 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Payment Method */}
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Payment Method</h2>
-
-                <RadioGroup
-                  value={formData.paymentMethod}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
-                  disabled={isSubmitting}
-                >
-                  <div className="flex items-center space-x-2 border rounded-md p-4">
-                    <RadioGroupItem value="card" id="card" disabled={isSubmitting} />
-                    <Label htmlFor="card" className="flex items-center cursor-pointer">
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Credit / Debit Card
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 border rounded-md p-4">
-                    <RadioGroupItem value="paypal" id="paypal" disabled={isSubmitting} />
-                    <Label htmlFor="paypal" className="cursor-pointer">PayPal</Label>
-                  </div>
-                </RadioGroup>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cardName">Name on Card</Label>
-                    <Input
-                      id="cardName"
-                      name="cardName"
-                      value={formData.cardName}
-                      onChange={handleInputChange}
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input
-                      id="cardNumber"
-                      name="cardNumber"
-                      value={formData.cardNumber}
-                      onChange={handleInputChange}
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2 col-span-1">
-                    <Label htmlFor="expMonth">Expiry Month</Label>
-                    <Input
-                      id="expMonth"
-                      name="expMonth"
-                      value={formData.expMonth}
-                      onChange={handleInputChange}
-                      placeholder="MM"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div className="space-y-2 col-span-1">
-                    <Label htmlFor="expYear">Expiry Year</Label>
-                    <Input
-                      id="expYear"
-                      name="expYear"
-                      value={formData.expYear}
-                      onChange={handleInputChange}
-                      placeholder="YY"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div className="space-y-2 col-span-2 sm:col-span-1">
-                    <Label htmlFor="cvv">CVV</Label>
-                    <Input
-                      id="cvv"
-                      name="cvv"
-                      value={formData.cvv}
-                      onChange={handleInputChange}
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-              </div>
-
               {/* Additional Information */}
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Additional Information</h2>
@@ -413,7 +335,7 @@ export default function CheckoutPage() {
                     Processing...
                   </>
                 ) : (
-                  "Place Order"
+                  `Continue to Payment - $${total.toFixed(2)}`
                 )}
               </Button>
             </div>
@@ -454,6 +376,10 @@ export default function CheckoutPage() {
                   <span>${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tax ({TAX_PERCENTAGE}%)</span>
+                  <span>${tax.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
                   <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
                 </div>
@@ -473,7 +399,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex items-center text-sm">
                   <Truck className="h-4 w-4 text-primary mr-2" />
-                  <span>Free shipping on orders over $35</span>
+                  <span>Free shipping on orders over ${FREE_SHIPPING_THRESHOLD}</span>
                 </div>
               </div>
             </div>

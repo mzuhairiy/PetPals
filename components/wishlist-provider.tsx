@@ -59,6 +59,21 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
           }
         })
 
+        // If unauthorized (invalid/expired token), fall back to localStorage
+        if (response.status === 401) {
+          console.warn("Wishlist auth failed, using localStorage")
+          const savedWishlist = localStorage.getItem("wishlistItems")
+          if (savedWishlist) {
+            try {
+              setWishlistItems(JSON.parse(savedWishlist))
+            } catch (e) {
+              console.error("Failed to parse localStorage wishlist:", e)
+            }
+          }
+          setIsLoading(false)
+          return
+        }
+
         if (response.ok) {
           const result = await response.json()
           // Transform backend data to frontend format

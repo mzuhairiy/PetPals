@@ -127,7 +127,7 @@ export default function CartPage() {
                 </Link>
               </Button>
 
-              <div className="text-center text-xs text-muted-foreground mt-4">Secure checkout powered by Stripe</div>
+              <div className="text-center text-xs text-muted-foreground mt-4">Secure checkout powered by Midtrans</div>
             </div>
           </Card>
 

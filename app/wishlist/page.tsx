@@ -12,6 +12,8 @@ import { useWishlist } from "@/components/wishlist-provider"
 import { useAuth } from "@/contexts/AuthContext"
 import { fetchProducts } from "@/lib/api"
 import type { Product } from "@/lib/types"
+import { formatPrice } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function WishlistPage() {
   const { wishlistItems, removeFromWishlist } = useWishlist()
@@ -35,8 +37,15 @@ export default function WishlistPage() {
   // Load all products from API
   useEffect(() => {
     const loadProducts = async () => {
-      const products = await fetchProducts()
-      setAllProducts(products)
+      setIsInitialLoading(true)
+      try {
+        const products = await fetchProducts()
+        setAllProducts(products)
+      } catch (error) {
+        console.error("Failed to load products:", error)
+      } finally {
+        setIsInitialLoading(false)
+      }
     }
     loadProducts()
   }, [])
@@ -61,12 +70,26 @@ export default function WishlistPage() {
   }
 
   // Show loading while checking auth
+  // Show loading skeleton while checking auth or loading products
   if (authLoading || isInitialLoading) {
     return (
-      <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading...</p>
+      <div className="container px-4 py-8 md:py-12">
+        <h1 className="text-3xl font-bold mb-8">My Wishlist</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="overflow-hidden">
+              <Skeleton className="h-48 w-full" />
+              <div className="p-4 space-y-3">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <div className="flex justify-between pt-2">
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-8 w-28" />
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
     )
@@ -118,7 +141,7 @@ export default function WishlistPage() {
               </Link>
               <p className="text-muted-foreground text-sm mb-2 line-clamp-2">{product.description}</p>
               <div className="flex justify-between items-center mt-4">
-                <span className="font-bold text-primary">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
+                <span className="font-bold text-primary">{formatPrice(product.price)}</span>
                 <Button onClick={() => handleAddToCart(product)} size="sm">
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Add to Cart

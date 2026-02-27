@@ -34,11 +34,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedToken = localStorage.getItem("token")
     const storedUser = localStorage.getItem("user")
 
-    if (storedToken && storedUser) {
-      setToken(storedToken)
-      setUser(JSON.parse(storedUser))
-    }
-    setIsLoading(false)
+    // Add minimum delay to ensure skeleton loading is visible
+    const timer = setTimeout(() => {
+      if (storedToken && storedUser) {
+        setToken(storedToken)
+        setUser(JSON.parse(storedUser))
+      }
+      setIsLoading(false)
+    }, 500)
+
+    return () => clearTimeout(timer)
   }, [])
 
   const login = async (email: string, password: string) => {

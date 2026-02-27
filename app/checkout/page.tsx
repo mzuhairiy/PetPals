@@ -16,13 +16,14 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { ShieldCheck, Truck, ArrowLeft, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { formatPrice } from "@/lib/utils"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
 // Config from backend
 const TAX_PERCENTAGE = 10
-const FREE_SHIPPING_THRESHOLD = 5
-const DEFAULT_SHIPPING_COST = 5.99
+const FREE_SHIPPING_THRESHOLD = 560000 // Rp 560,000
+const DEFAULT_SHIPPING_COST = 25000 // Rp 25,000
 
 export default function CheckoutPage() {
   const { cartItems, clearCart } = useCart()
@@ -86,11 +87,11 @@ export default function CheckoutPage() {
     notes: ""
   })
 
-  // Calculate totals
+  // Calculate totals - prices from cart are already in IDR
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
-  const tax = Number((subtotal * (TAX_PERCENTAGE / 100)).toFixed(2))
+  const tax = Math.round(subtotal * (TAX_PERCENTAGE / 100))
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_COST
-  const total = Number((subtotal + tax + shipping).toFixed(2))
+  const total = subtotal + tax + shipping
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -401,7 +402,7 @@ export default function CheckoutPage() {
                     Processing...
                   </>
                 ) : (
-                  `Continue to Payment - $${total.toFixed(2)}`
+                  `Continue to Payment - Rp ${total.toLocaleString('id-ID')}`
                 )}
               </Button>
             </div>
@@ -428,7 +429,7 @@ export default function CheckoutPage() {
                     <div className="flex-1">
                       <h3 className="text-sm font-medium">{item.name}</h3>
                       <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                      <p className="text-sm font-medium mt-1">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-sm font-medium mt-1">{formatPrice(item.price * item.quantity)}</p>
                     </div>
                   </div>
                 ))}
@@ -439,22 +440,22 @@ export default function CheckoutPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tax ({TAX_PERCENTAGE}%)</span>
-                  <span>${tax.toFixed(2)}</span>
+                  <span>{formatPrice(tax)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                  <span>{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
                 </div>
 
                 <Separator />
 
                 <div className="flex justify-between font-medium">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{formatPrice(total)}</span>
                 </div>
               </div>
 
@@ -465,7 +466,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex items-center text-sm">
                   <Truck className="h-4 w-4 text-primary mr-2" />
-                  <span>Free shipping on orders over ${FREE_SHIPPING_THRESHOLD}</span>
+                  <span>Free shipping on orders over Rp 560.000</span>
                 </div>
               </div>
             </div>

@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
 import { Cat, Dog, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { formatPrice } from "@/lib/utils"
 
 export default function ShopFilters() {
   const router = useRouter()
@@ -112,7 +113,7 @@ export default function ShopFilters() {
 
           {(priceRange[0] > 0 || priceRange[1] < 100) && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Price: ${priceRange[0]} - ${priceRange[1]}
+              Price: {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
               <Button variant="ghost" size="icon" onClick={() => setPriceRange([0, 100])} className="h-4 w-4 p-0 ml-1">
                 <X className="h-3 w-3" />
                 <span className="sr-only">Remove price filter</span>
@@ -196,8 +197,8 @@ export default function ShopFilters() {
                 className="my-6"
               />
               <div className="flex items-center justify-between">
-                <span>${priceRange[0]}</span>
-                <span>${priceRange[1]}</span>
+                <span>{formatPrice(priceRange[0])}</span>
+                <span>{formatPrice(priceRange[1])}</span>
               </div>
             </div>
           </AccordionContent>

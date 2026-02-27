@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input"
 import { ShoppingCart, Search, Menu, X, User, Heart, PawPrint, Cat, Dog, LogOut, Loader2, Package } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { useAuth } from "@/contexts/AuthContext"
-import { cn } from "@/lib/utils"
+import { cn, formatPrice } from "@/lib/utils"
 import { searchProducts } from "@/lib/api"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -21,9 +22,15 @@ export default function Header() {
   const searchRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const { cartItems } = useCart()
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth()
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0)
+
+  // Handle logout with redirect to sign-in
+  const handleLogout = () => {
+    logout()
+    router.push("/sign-in")
+  }
 
   // Debounced search
   useEffect(() => {
@@ -98,27 +105,39 @@ export default function Header() {
         </div>
 
         <nav className="hidden md:flex mx-6 items-center space-x-4 lg:space-x-6">
-          <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
-            Home
-          </Link>
-          <Link href="/shop" className="text-sm font-medium transition-colors hover:text-primary">
-            Shop
-          </Link>
-          <Link
-            href="/shop?category=cat"
-            className="text-sm font-medium transition-colors hover:text-primary flex items-center"
-          >
-            <Cat className="mr-1 h-4 w-4" /> Cats
-          </Link>
-          <Link
-            href="/shop?category=dog"
-            className="text-sm font-medium transition-colors hover:text-primary flex items-center"
-          >
-            <Dog className="mr-1 h-4 w-4" /> Dogs
-          </Link>
-          <Link href="/about" className="text-sm font-medium transition-colors hover:text-primary">
-            About Us
-          </Link>
+          {authLoading ? (
+            <div className="flex space-x-4">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-20" />
+            </div>
+          ) : (
+            <>
+              <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
+                Home
+              </Link>
+              <Link href="/shop" className="text-sm font-medium transition-colors hover:text-primary">
+                Shop
+              </Link>
+              <Link
+                href="/shop?category=cat"
+                className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+              >
+                <Cat className="mr-1 h-4 w-4" /> Cats
+              </Link>
+              <Link
+                href="/shop?category=dog"
+                className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+              >
+                <Dog className="mr-1 h-4 w-4" /> Dogs
+              </Link>
+              <Link href="/about" className="text-sm font-medium transition-colors hover:text-primary">
+                About Us
+              </Link>
+            </>
+          )}
         </nav>
 
         <div className={cn("transition-all duration-200 ease-in-out relative", isSearchOpen ? "flex-1" : "w-0 overflow-hidden")}>
@@ -158,7 +177,7 @@ export default function Header() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">${Number(product.price).toFixed(2)}</p>
+                        <p className="text-xs text-muted-foreground">{formatPrice(Number(product.price))}</p>
                       </div>
                     </button>
                   ))}
@@ -193,24 +212,51 @@ export default function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
-          {!isSearchOpen && (
-            <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(true)}>
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Search</span>
-            </Button>
-          )}
+          {authLoading ? (
+            <>
+              <Skeleton className="h-9 w-9" />
+              <Skeleton className="h-9 w-9" />
+              <Skeleton className="h-9 w-9" />
+            </>
+          ) : (
+            <>
+              {!isSearchOpen && (
+                <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(true)}>
+                  <Search className="h-5 w-5" />
+                  <span className="sr-only">Search</span>
+                </Button>
+              )}
 
-          {isAuthenticated && (
-            <Link href="/wishlist">
-              <Button variant="ghost" size="icon">
-                <Heart className="h-5 w-5" />
-                <span className="sr-only">Wishlist</span>
-              </Button>
-            </Link>
+              {isAuthenticated && (
+                <Link href="/wishlist">
+                  <Button variant="ghost" size="icon">
+                    <Heart className="h-5 w-5" />
+                    <span className="sr-only">Wishlist</span>
+                  </Button>
+                </Link>
+              )}
+
+              <Link href="/cart">
+                <Button variant="ghost" size="icon" className="relative">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="sr-only">Cart</span>
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                      {cartItems.length > 99 ? '99+' : cartItems.length}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+            </>
           )}
 
           <div className="hidden md:flex">
-            {isAuthenticated ? (
+            {authLoading ? (
+              <>
+                <Skeleton className="h-8 w-20 mr-1" />
+                <Skeleton className="h-8 w-20" />
+              </>
+            ) : isAuthenticated ? (
               <>
                 <Link href="/orders">
                   <Button variant="ghost" size="sm" className="mr-1">
@@ -224,7 +270,7 @@ export default function Header() {
                     {user?.name}
                   </Button>
                 </Link>
-                <Button variant="ghost" size="sm" onClick={logout}>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </Button>
@@ -246,7 +292,7 @@ export default function Header() {
           </div>
           <div className="md:hidden">
             {isAuthenticated ? (
-              <Button variant="ghost" size="icon" onClick={logout}>
+              <Button variant="ghost" size="icon" onClick={handleLogout}>
                 <LogOut className="h-5 w-5" />
                 <span className="sr-only">Sign Out</span>
               </Button>
@@ -260,17 +306,21 @@ export default function Header() {
             )}
           </div>
 
-          <Link href="/cart">
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
-                  {totalItems}
-                </span>
-              )}
-              <span className="sr-only">Cart</span>
-            </Button>
-          </Link>
+          {authLoading ? (
+            <Skeleton className="h-9 w-9" />
+          ) : (
+            <Link href="/cart">
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingCart className="h-5 w-5" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
+                    {totalItems}
+                  </span>
+                )}
+                <span className="sr-only">Cart</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -333,7 +383,7 @@ export default function Header() {
                 </Link>
                 <button
                   onClick={() => {
-                    logout()
+                    handleLogout()
                     setIsMenuOpen(false)
                   }}
                   className="flex items-center gap-2 text-lg font-semibold"

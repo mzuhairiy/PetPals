@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchProducts } from '@/lib/api';
 import AddToCartWithQuantity from '@/components/add-to-cart-with-quantity';
 import RelatedProducts from '@/components/related-products';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 
 interface ProductPageProps {
   params: {
@@ -76,12 +76,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div className="mt-6">
             {product.originalPrice && product.originalPrice > product.price ? (
               <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-primary">${product.price.toFixed(2)}</span>
-                <span className="text-lg text-muted-foreground line-through">${product.originalPrice.toFixed(2)}</span>
-                <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Save ${(product.originalPrice - product.price).toFixed(2)}</span>
+                <span className="text-3xl font-bold text-primary">{formatPrice(product.price)}</span>
+                <span className="text-lg text-muted-foreground line-through">{formatPrice(product.originalPrice)}</span>
+                <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Save {formatPrice(product.originalPrice - product.price)}</span>
               </div>
             ) : (
-              <span className="text-3xl font-bold text-primary">${product.price.toFixed(2)}</span>
+              <span className="text-3xl font-bold text-primary">{formatPrice(product.price)}</span>
             )}
           </div>
 
@@ -95,7 +95,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Truck className="mr-2 h-4 w-4" />
-                <span>Free shipping on orders over $35</span>
+                <span>Free shipping on orders over Rp 560.000</span>
               </div>
             </div>
 

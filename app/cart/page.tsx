@@ -8,12 +8,15 @@ import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Trash2, ShoppingBag, ArrowRight } from "lucide-react"
 import ProductQuantity from "@/components/product-quantity"
+import { formatPrice } from "@/lib/utils"
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart()
 
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
-  const shipping = subtotal > 35 ? 0 : 5.99
+  const FREE_SHIPPING_THRESHOLD = 560000 // Rp 560,000
+  const DEFAULT_SHIPPING_COST = 25000 // Rp 25,000
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_COST
   const total = subtotal + shipping
 
   if (cartItems.length === 0) {
@@ -65,7 +68,7 @@ export default function CartPage() {
                       <div className="flex flex-col sm:flex-row sm:justify-between">
                         <div>
                           <h3 className="font-medium">{item.name}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">${item.price.toFixed(2)}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{formatPrice(item.price)}</p>
                         </div>
                         <div className="mt-2 sm:mt-0 flex items-center">
                           <ProductQuantity
@@ -84,7 +87,7 @@ export default function CartPage() {
                           </Button>
                         </div>
                       </div>
-                      <div className="mt-2 sm:text-right font-medium">${(item.price * item.quantity).toFixed(2)}</div>
+                      <div className="mt-2 sm:text-right font-medium">{formatPrice(item.price * item.quantity)}</div>
                     </div>
                   </div>
                 ))}
@@ -100,23 +103,23 @@ export default function CartPage() {
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Shipping</span>
-                <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                <span>{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
               </div>
 
               <Separator />
 
               <div className="flex justify-between font-medium">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{formatPrice(total)}</span>
               </div>
 
-              {subtotal < 35 && (
+              {subtotal < FREE_SHIPPING_THRESHOLD && (
                 <div className="text-sm text-muted-foreground mt-2">
-                  Add ${(35 - subtotal).toFixed(2)} more to qualify for free shipping
+                  Add {formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} more to qualify for free shipping
                 </div>
               )}
 

@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Star } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart-provider';
 import type { Product } from '@/lib/types';
 import WishlistButton from '@/components/wishlist-button';
@@ -93,11 +93,13 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
           <div>
             {product.originalPrice && product.originalPrice > product.price ? (
               <div className="flex items-center gap-2">
-                <span className="font-bold text-primary">${product.price.toFixed(2)}</span>
-                <span className="text-muted-foreground text-sm line-through">${product.originalPrice.toFixed(2)}</span>
+                <span className="font-bold text-primary">{formatPrice(product.price)}</span>
+                {product.originalPrice && (
+                  <span className="text-muted-foreground text-sm line-through">{formatPrice(product.originalPrice)}</span>
+                )}
               </div>
             ) : (
-              <span className="font-bold text-primary">${product.price.toFixed(2)}</span>
+              <span className="font-bold text-primary">{formatPrice(product.price)}</span>
             )}
           </div>
 

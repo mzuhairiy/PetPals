@@ -3,13 +3,30 @@ import { Category, Pet } from '@prisma/client'
 
 export const registerSchema = z.object({
   email: z.string().email('Invalid email format').min(5).max(255),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[0-9]/, 'Password must include at least one number')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must include at least one special character'),
   name: z.string().min(2, 'Name must be at least 2 characters').max(100)
 })
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
   password: z.string().min(6, 'Password is required')
+})
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email format')
+})
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters')
+})
+
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1, 'Refresh token is required')
 })
 
 export const createProductSchema = z.object({
@@ -48,6 +65,8 @@ export const createOrderSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
 export type CreateProductInput = z.infer<typeof createProductSchema>
 export type UpdateProductInput = z.infer<typeof updateProductSchema>
 export type CreateOrderInput = z.infer<typeof createOrderSchema>

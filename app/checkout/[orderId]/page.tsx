@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/contexts/AuthContext"
+import { useCart } from "@/components/cart-provider"
 import { useToast } from "@/components/ui/use-toast"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
@@ -26,6 +27,7 @@ interface OrderData {
 export default function CheckoutPaymentPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = use(params)
   const { token, isAuthenticated } = useAuth()
+  const { clearCart } = useCart()
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -146,6 +148,8 @@ export default function CheckoutPaymentPage({ params }: { params: Promise<{ orde
       snap.pay(snapToken, {
         onSuccess: (result: unknown) => {
           console.log("Payment success:", result)
+          // Clear cart only after successful payment
+          clearCart()
           toast({
             title: "Payment Successful",
             description: "Your order has been placed successfully!",

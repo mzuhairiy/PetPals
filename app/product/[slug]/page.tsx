@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Star, Truck, RotateCcw, ShieldCheck } from 'lucide-react';
@@ -7,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchProducts } from '@/lib/api';
 import AddToCartWithQuantity from '@/components/add-to-cart-with-quantity';
 import RelatedProducts from '@/components/related-products';
+import { SafeImage } from '@/components/safe-image';
 import { cn, formatPrice } from '@/lib/utils';
 
 interface ProductPageProps {
@@ -19,7 +19,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
   // Fetch all products and find by slug
-  const products = await fetchProducts();
+  const response = await fetchProducts();
+  const products = response.products;
   const product = products.find((p: any) => p.slug === slug);
 
   if (!product) {
@@ -38,12 +39,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="md:w-1/2">
           <div className="sticky top-20">
             <div className="aspect-square overflow-hidden rounded-lg bg-muted">
-              <Image src={product.image || '/placeholder.svg?height=600&width=600'} alt={product.name} width={600} height={600} className="h-full w-full object-cover" priority />
+              <SafeImage src={product.image || '/placeholder.svg?height=600&width=600'} alt={product.name} width={600} height={600} className="h-full w-full object-cover" priority />
             </div>
             <div className="mt-4 grid grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((img, i) => (
                 <div key={i} className="overflow-hidden rounded-lg bg-muted">
-                  <Image src={product.image || '/placeholder.svg?height=150&width=150'} alt={`Product view ${i}`} width={150} height={150} className="h-full w-full object-cover" />
+                  <SafeImage src={product.image || '/placeholder.svg?height=150&width=150'} alt={`Product view ${i}`} width={150} height={150} className="h-full w-full object-cover" />
                 </div>
               ))}
             </div>

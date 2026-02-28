@@ -235,18 +235,6 @@ export default function Header() {
                   </Button>
                 </Link>
               )}
-
-              <Link href="/cart">
-                <Button variant="ghost" size="icon" className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  <span className="sr-only">Cart</span>
-                  {cartItems.length > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                      {cartItems.length > 99 ? '99+' : cartItems.length}
-                    </span>
-                  )}
-                </Button>
-              </Link>
             </>
           )}
 

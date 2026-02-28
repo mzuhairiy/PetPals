@@ -1,15 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Cat, Dog, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { formatPrice } from "@/lib/utils"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+const DEBOUNCE_DELAY = 500
 
 export default function ShopFilters() {
   const router = useRouter()
@@ -20,62 +24,149 @@ export default function ShopFilters() {
   const currentPet = searchParams.get("pet") || ""
   const currentSort = searchParams.get("sort") || ""
   const currentMinPrice = searchParams.get("min") ? Number.parseFloat(searchParams.get("min") as string) : 0
-  const currentMaxPrice = searchParams.get("max") ? Number.parseFloat(searchParams.get("max") as string) : 100
+  const currentMaxPrice = searchParams.get("max") ? Number.parseFloat(searchParams.get("max") as string) : 0
+
+  // Price range from database
+  const [priceRangeMax, setPriceRangeMax] = useState(10000)
 
   // Local state for filters
   const [category, setCategory] = useState(currentCategory)
   const [pet, setPet] = useState(currentPet)
   const [sort, setSort] = useState(currentSort)
-  const [priceRange, setPriceRange] = useState<[number, number]>([currentMinPrice, currentMaxPrice])
+  const [priceRange, setPriceRange] = useState<[number, number]>([currentMinPrice, currentMaxPrice || priceRangeMax])
+  const [minInput, setMinInput] = useState(currentMinPrice.toString())
+  const [maxInput, setMaxInput] = useState((currentMaxPrice || priceRangeMax).toString())
 
-  // Update URL when filters change
+  // Fetch price range on mount
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString())
-
-    if (category) {
-      params.set("category", category)
-    } else {
-      params.delete("category")
+    const fetchPriceRange = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/products/price-range`)
+        const result = await response.json()
+        if (result.success && result.data) {
+          const max = Math.ceil(result.data.max * 1.1) // Add 10% buffer
+          setPriceRangeMax(max)
+          // Initialize with fetched max if not set
+          if (!currentMaxPrice) {
+            setPriceRange([0, max])
+            setMaxInput(max.toString())
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch price range:", error)
+      }
     }
+    fetchPriceRange()
+  }, [])
 
-    if (pet) {
-      params.set("pet", pet)
-    } else {
-      params.delete("pet")
-    }
+  // Debounced URL update
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString())
 
-    if (sort) {
-      params.set("sort", sort)
-    } else {
-      params.delete("sort")
-    }
+      if (category) {
+        params.set("category", category)
+      } else {
+        params.delete("category")
+      }
 
-    if (priceRange[0] > 0) {
-      params.set("min", priceRange[0].toString())
-    } else {
-      params.delete("min")
-    }
+      if (pet) {
+        params.set("pet", pet)
+      } else {
+        params.delete("pet")
+      }
 
-    if (priceRange[1] < 100) {
-      params.set("max", priceRange[1].toString())
-    } else {
-      params.delete("max")
-    }
+      if (sort) {
+        params.set("sort", sort)
+      } else {
+        params.delete("sort")
+      }
 
-    router.push(`/shop?${params.toString()}`)
-  }, [category, pet, sort, priceRange, router, searchParams])
+      if (priceRange[0] > 0) {
+        params.set("min", priceRange[0].toString())
+      } else {
+        params.delete("min")
+      }
+
+      if (priceRange[1] < priceRangeMax) {
+        params.set("max", priceRange[1].toString())
+      } else {
+        params.delete("max")
+      }
+
+      router.push(`/shop?${params.toString()}`)
+    }, DEBOUNCE_DELAY)
+
+    return () => clearTimeout(timer)
+  }, [category, pet, sort, priceRange, priceRangeMax, router, searchParams])
+
+  // Handle slider change
+  const handleSliderChange = (value: number[]) => {
+    const newRange: [number, number] = [value[0], value[1]]
+    setPriceRange(newRange)
+    setMinInput(newRange[0].toString())
+    setMaxInput(newRange[1].toString())
+  }
+
+  // Handle min input change
+  const handleMinInputChange = (value: string) => {
+    setMinInput(value)
+    const numValue = Number.parseFloat(value) || 0
+    
+    // Validate: min cannot be negative
+    if (numValue < 0) return
+    
+    // Validate: min cannot exceed max
+    const currentMax = Number.parseFloat(maxInput) || priceRangeMax
+    if (numValue > currentMax) return
+    
+    setPriceRange([numValue, currentMax])
+  }
+
+  // Handle max input change
+  const handleMaxInputChange = (value: string) => {
+    setMaxInput(value)
+    const numValue = Number.parseFloat(value) || priceRangeMax
+    
+    // Validate: max cannot exceed price range max
+    if (numValue > priceRangeMax) return
+    
+    // Validate: max cannot be less than min
+    const currentMin = Number.parseFloat(minInput) || 0
+    if (numValue < currentMin) return
+    
+    setPriceRange([currentMin, numValue])
+  }
+
+  // Handle min input blur (reset to valid value)
+  const handleMinBlur = () => {
+    const numValue = Number.parseFloat(minInput) || 0
+    const clampedValue = Math.max(0, Math.min(numValue, priceRange[1]))
+    setMinInput(clampedValue.toString())
+    setPriceRange([clampedValue, priceRange[1]])
+  }
+
+  // Handle max input blur (reset to valid value)
+  const handleMaxBlur = () => {
+    const numValue = Number.parseFloat(maxInput) || priceRangeMax
+    const clampedValue = Math.max(priceRange[0], Math.min(numValue, priceRangeMax))
+    setMaxInput(clampedValue.toString())
+    setPriceRange([priceRange[0], clampedValue])
+  }
 
   // Reset all filters
   const resetFilters = () => {
     setCategory("")
     setPet("")
     setSort("")
-    setPriceRange([0, 100])
+    setPriceRange([0, priceRangeMax])
+    setMinInput("0")
+    setMaxInput(priceRangeMax.toString())
     router.push("/shop")
   }
 
   // Check if any filters are active
-  const hasActiveFilters = category || pet || sort || priceRange[0] > 0 || priceRange[1] < 100
+  const hasActiveFilters = category || pet || sort || priceRange[0] > 0 || priceRange[1] < priceRangeMax
 
   return (
     <div className="space-y-6">
@@ -111,10 +202,14 @@ export default function ShopFilters() {
             </Badge>
           )}
 
-          {(priceRange[0] > 0 || priceRange[1] < 100) && (
+          {(priceRange[0] > 0 || priceRange[1] < priceRangeMax) && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Price: {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
-              <Button variant="ghost" size="icon" onClick={() => setPriceRange([0, 100])} className="h-4 w-4 p-0 ml-1">
+              <Button variant="ghost" size="icon" onClick={() => {
+                setPriceRange([0, priceRangeMax])
+                setMinInput("0")
+                setMaxInput(priceRangeMax.toString())
+              }} className="h-4 w-4 p-0 ml-1">
                 <X className="h-3 w-3" />
                 <span className="sr-only">Remove price filter</span>
               </Button>
@@ -189,14 +284,42 @@ export default function ShopFilters() {
           <AccordionContent>
             <div className="space-y-4">
               <Slider
-                defaultValue={[priceRange[0], priceRange[1]]}
-                max={100}
-                step={1}
                 value={[priceRange[0], priceRange[1]]}
-                onValueChange={(value) => setPriceRange([value[0], value[1]])}
+                max={priceRangeMax}
+                step={1000}
+                onValueChange={handleSliderChange}
                 className="my-6"
               />
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <Label htmlFor="min-price" className="text-xs text-muted-foreground">Min</Label>
+                  <Input
+                    id="min-price"
+                    type="number"
+                    value={minInput}
+                    onChange={(e) => handleMinInputChange(e.target.value)}
+                    onBlur={handleMinBlur}
+                    min={0}
+                    max={priceRangeMax}
+                    className="h-8"
+                  />
+                </div>
+                <span className="text-muted-foreground mt-5">-</span>
+                <div className="flex-1">
+                  <Label htmlFor="max-price" className="text-xs text-muted-foreground">Max</Label>
+                  <Input
+                    id="max-price"
+                    type="number"
+                    value={maxInput}
+                    onChange={(e) => handleMaxInputChange(e.target.value)}
+                    onBlur={handleMaxBlur}
+                    min={0}
+                    max={priceRangeMax}
+                    className="h-8"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <span>{formatPrice(priceRange[0])}</span>
                 <span>{formatPrice(priceRange[1])}</span>
               </div>

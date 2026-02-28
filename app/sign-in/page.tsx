@@ -3,8 +3,11 @@
 import type React from "react"
 
 import Link from "next/link"
-import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,20 +16,35 @@ import { PawPrint, Lock, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 
+const signInSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+  remember: z.boolean().optional()
+})
+
+type SignInFormData = z.infer<typeof signInSchema>
+
 export default function SignInPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    trigger
+  } = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
+    mode: "onBlur"
+  })
+
+  const onSubmit = async (data: SignInFormData) => {
     setIsLoading(true)
 
     try {
-      await login(email, password)
+      await login(data.email, data.password)
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
@@ -53,7 +71,7 @@ export default function SignInPage() {
           <CardTitle className="text-2xl font-bold">Sign in to your account</CardTitle>
           <CardDescription>Enter your email and password to access your account</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -61,10 +79,13 @@ export default function SignInPage() {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                {...register("email")}
+                onBlur={() => trigger("email")}
+                className={errors.email ? "border-red-500" : ""}
               />
+              {errors.email && (
+                <p className="text-red-500 text-xs">{errors.email.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -76,13 +97,21 @@ export default function SignInPage() {
               <Input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                {...register("password")}
+                onBlur={() => trigger("password")}
+                className={errors.password ? "border-red-500" : ""}
               />
+              {errors.password && (
+                <p className="text-red-500 text-xs">{errors.password.message}</p>
+              )}
             </div>
             <div className="flex items-center space-x-2">
-              <input type="checkbox" id="remember" className="rounded border-gray-300" />
+              <input
+                type="checkbox"
+                id="remember"
+                {...register("remember")}
+                className="rounded border-gray-300"
+              />
               <Label htmlFor="remember" className="text-sm font-normal">
                 Remember me
               </Label>

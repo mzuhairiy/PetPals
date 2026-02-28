@@ -4,7 +4,8 @@ import {
   getProduct,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getPriceRange
 } from '../controllers/products'
 import { authenticate, requireRole } from '../middleware/auth'
 import { validateBody } from '../middleware/validation'
@@ -14,6 +15,7 @@ import { Role } from '../types'
 const router = Router()
 
 router.get('/', getProducts)
+router.get('/price-range', getPriceRange)
 router.get('/:id', getProduct)
 router.post(
   '/',

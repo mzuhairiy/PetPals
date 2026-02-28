@@ -1,13 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { useCart } from "@/components/cart-provider"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Trash2, ShoppingBag, ArrowRight } from "lucide-react"
 import ProductQuantity from "@/components/product-quantity"
+import { SafeImage } from "@/components/safe-image"
 import { formatPrice } from "@/lib/utils"
 
 export default function CartPage() {
@@ -56,7 +56,7 @@ export default function CartPage() {
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-shrink-0">
-                      <Image
+                      <SafeImage
                         src={item.image || "/placeholder.svg?height=100&width=100"}
                         alt={item.name}
                         width={100}

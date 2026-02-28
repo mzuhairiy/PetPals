@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect } from "react"
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react"
 
 interface User {
   id: string
@@ -17,7 +17,9 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
+  logoutAll: () => Promise<void>
   updateProfile: (name: string) => Promise<void>
+  refreshToken: () => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -28,6 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const isRefreshing = useRef(false)
+  const refreshPromise = useRef<Promise<boolean> | null>(null)
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -44,6 +48,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 500)
 
     return () => clearTimeout(timer)
+  }, [])
+
+  const refreshToken = useCallback(async (): Promise<boolean> => {
+    // If already refreshing, wait for the existing promise
+    if (isRefreshing.current && refreshPromise.current) {
+      return refreshPromise.current
+    }
+
+    isRefreshing.current = true
+
+    const refreshPromiseFunc = (async () => {
+      try {
+        const currentToken = localStorage.getItem("token")
+        const currentUser = localStorage.getItem("user")
+
+        if (!currentToken || !currentUser) {
+          return false
+        }
+
+        const userData = JSON.parse(currentUser)
+
+        const response = await fetch(`${API_URL}/api/auth/refresh`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ userId: userData.id }),
+        })
+
+        if (!response.ok) {
+          // Refresh failed - logout
+          logout()
+          return false
+        }
+
+        const data = await response.json()
+        const newToken = data.data.token
+
+        setToken(newToken)
+        setUser(data.data.user)
+        localStorage.setItem("token", newToken)
+        localStorage.setItem("user", JSON.stringify(data.data.user))
+
+        return true
+      } catch (error) {
+        console.error("Token refresh failed:", error)
+        logout()
+        return false
+      } finally {
+        isRefreshing.current = false
+        refreshPromise.current = null
+      }
+    })()
+
+    refreshPromise.current = refreshPromiseFunc
+    return refreshPromiseFunc
   }, [])
 
   const login = async (email: string, password: string) => {
@@ -83,7 +144,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(error.error?.message || "Registration failed")
     }
 
-    const data = await response.json()
     // After successful registration, auto-login
     await login(email, password)
   }
@@ -95,12 +155,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("user")
   }
 
+  const logoutAll = async () => {
+    try {
+      const currentToken = localStorage.getItem("token")
+      
+      // Call the logout-all endpoint
+      await fetch(`${API_URL}/api/auth/logout-all`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentToken}`
+        }
+      })
+    } catch (error) {
+      console.error("Logout all failed:", error)
+    } finally {
+      // Clear local state regardless of API call result
+      setUser(null)
+      setToken(null)
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+    }
+  }
+
   const updateProfile = async (name: string) => {
+    const currentToken = localStorage.getItem("token")
+    
     const response = await fetch(`${API_URL}/api/auth/me`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        "Authorization": `Bearer ${currentToken}`,
       },
       body: JSON.stringify({ name }),
     })
@@ -125,7 +210,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     register,
     logout,
+    logoutAll,
     updateProfile,
+    refreshToken,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

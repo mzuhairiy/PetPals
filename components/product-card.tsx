@@ -3,7 +3,6 @@
 import type React from 'react';
 import Link from 'next/link';
 
-import Image from 'next/image';
 import { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { cn, formatPrice } from '@/lib/utils';
 import { useCart } from '@/components/cart-provider';
 import type { Product } from '@/lib/types';
 import WishlistButton from '@/components/wishlist-button';
+import { SafeImage } from '@/components/safe-image';
 
 interface ProductCardProps {
   product: Product;
@@ -21,7 +21,6 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, compact = false }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
   const { addToCart } = useCart();
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -44,23 +43,17 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative">
-          {!imageLoaded && (
-            <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          )}
-          <Image
+          <SafeImage
             src={product.image || '/placeholder.svg'}
             alt={product.name}
             width={300}
             height={300}
-            className={cn('w-full object-cover transition-transform duration-300', compact ? 'h-40' : 'h-60', isHovered && 'scale-105', !imageLoaded && 'opacity-0')}
-            onLoad={() => setImageLoaded(true)}
+            className={cn('w-full object-cover transition-transform duration-300', compact ? 'h-40' : 'h-60', isHovered && 'scale-105')}
           />
 
           {product.isNew && <Badge className="absolute top-2 left-2 bg-primary">New</Badge>}
 
-          {product.discount > 0 && <Badge className="absolute top-2 right-2 bg-green-600">{product.discount}% OFF</Badge>}
+          {(product.discount ?? 0) > 0 && <Badge className="absolute top-2 right-2 bg-green-600">{product.discount}% OFF</Badge>}
 
           {!compact && (
             <div className={cn('absolute bottom-0 right-0  p-2 transform transition-transform duration-300', isHovered ? 'translate-y-0' : 'translate-y-0')}>

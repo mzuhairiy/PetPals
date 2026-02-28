@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SafeImage } from '@/components/safe-image';
 
 interface Slide {
   image: string;
@@ -65,7 +65,7 @@ export default function HeroSlider({ slides, autoPlayInterval = 5000 }: HeroSlid
               <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
-          <Image
+          <SafeImage
             src={slide.image || '/placeholder.svg'}
             alt={slide.title}
             fill

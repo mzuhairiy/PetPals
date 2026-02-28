@@ -8,15 +8,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { User, Mail, Shield, Loader2, Save, ArrowLeft } from "lucide-react"
+import { User, Mail, Shield, Loader2, Save, ArrowLeft, LogOut } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 
 export default function AccountPage() {
   const [name, setName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
-  const { user, isAuthenticated, isLoading: authLoading, updateProfile } = useAuth()
+  const { user, isAuthenticated, isLoading: authLoading, updateProfile, logoutAll } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
 
@@ -67,6 +68,31 @@ export default function AccountPage() {
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleLogoutAll = async () => {
+    if (!confirm("Are you sure you want to log out from all devices? You will need to sign in again on all devices.")) {
+      return
+    }
+
+    setIsLoggingOut(true)
+
+    try {
+      await logoutAll()
+      toast({
+        title: "Logged Out",
+        description: "You have been logged out from all devices.",
+      })
+      router.push("/sign-in")
+    } catch (error: any) {
+      toast({
+        title: "Logout Failed",
+        description: error.message || "Failed to log out from all devices.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoggingOut(false)
     }
   }
 
@@ -156,7 +182,7 @@ export default function AccountPage() {
             </div>
           </CardContent>
           
-          <div className="px-6 pb-6">
+          <div className="px-6 pb-6 space-y-4">
             <Button 
               className="w-full" 
               type="submit" 
@@ -171,6 +197,26 @@ export default function AccountPage() {
                 <>
                   <Save className="mr-2 h-4 w-4" />
                   Save Changes
+                </>
+              )}
+            </Button>
+
+            <Button 
+              variant="destructive" 
+              className="w-full" 
+              type="button"
+              onClick={handleLogoutAll}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging out...
+                </>
+              ) : (
+                <>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout from all devices
                 </>
               )}
             </Button>

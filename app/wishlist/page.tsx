@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -14,6 +13,7 @@ import { fetchProducts } from "@/lib/api"
 import type { Product } from "@/lib/types"
 import { formatPrice } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
+import { SafeImage } from "@/components/safe-image"
 
 export default function WishlistPage() {
   const { wishlistItems, removeFromWishlist } = useWishlist()
@@ -39,8 +39,8 @@ export default function WishlistPage() {
     const loadProducts = async () => {
       setIsInitialLoading(true)
       try {
-        const products = await fetchProducts()
-        setAllProducts(products)
+        const response = await fetchProducts()
+        setAllProducts(response.products)
       } catch (error) {
         console.error("Failed to load products:", error)
       } finally {
@@ -117,7 +117,7 @@ export default function WishlistPage() {
           <Card key={product.id} className="overflow-hidden">
             <div className="relative">
               <Link href={`/product/${product.slug}`}>
-                <Image
+                <SafeImage
                   src={product.image || "/placeholder.svg?height=300&width=300"}
                   alt={product.name}
                   width={300}

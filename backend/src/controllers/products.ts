@@ -6,7 +6,11 @@ import { createProductSchema, updateProductSchema } from '../validation'
 import { Prisma } from '@prisma/client'
 
 export async function getProducts(req: Request, res: Response) {
-  const { category, pet, search, minPrice, maxPrice, sort } = req.query
+  const { category, pet, search, minPrice, maxPrice, sort, page = '1', limit = '20' } = req.query
+
+  const pageNum = parseInt(page as string, 10)
+  const limitNum = parseInt(limit as string, 10)
+  const skip = (pageNum - 1) * limitNum
 
   const where: Prisma.ProductWhereInput = {}
 
@@ -38,9 +42,14 @@ export async function getProducts(req: Request, res: Response) {
   if (sort === 'rating') orderBy = { rating: 'desc' }
   if (sort === 'newest') orderBy = { isNew: 'desc' }
 
+  // Get total count for pagination metadata
+  const totalCount = await prisma.product.count({ where })
+
   const products = await prisma.product.findMany({
     where,
-    orderBy
+    orderBy,
+    skip,
+    take: limitNum
   })
 
   // Convert Decimal fields to numbers for JSON serialization
@@ -51,9 +60,17 @@ export async function getProducts(req: Request, res: Response) {
     rating: Number(product.rating)
   }))
 
+  const totalPages = Math.ceil(totalCount / limitNum)
+
   res.json({
     success: true,
-    data: serializedProducts
+    data: serializedProducts,
+    metadata: {
+      totalCount,
+      currentPage: pageNum,
+      totalPages,
+      limit: limitNum
+    }
   })
 }
 
@@ -118,4 +135,23 @@ export async function deleteProduct(req: Request, res: Response) {
   })
 
   res.status(204).send()
+}
+
+export async function getPriceRange(req: Request, res: Response) {
+  const priceRange = await prisma.product.aggregate({
+    _min: {
+      price: true
+    },
+    _max: {
+      price: true
+    }
+  })
+
+  res.json({
+    success: true,
+    data: {
+      min: priceRange._min.price ? Number(priceRange._min.price) : 0,
+      max: priceRange._max.price ? Number(priceRange._max.price) : 10000
+    }
+  })
 }

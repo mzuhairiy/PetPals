@@ -8,7 +8,8 @@ import HeroSlider from '@/components/hero-slider';
 
 export default async function Home() {
   // Fetch products from API
-  const products = await fetchProducts();
+  const response = await fetchProducts();
+  const products = response.products;
   
   // Note: Backend returns uppercase category/pet, convert for comparison
   const featuredProducts = products.filter((product: any) => product.featured).slice(0, 8);

@@ -47,7 +47,8 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   }
 
   // Fetch products from API
-  let products = await fetchProducts(filters)
+  const response = await fetchProducts(filters)
+  const products = response.products
 
   return (
     <div className="container px-4 py-8 md:py-12">

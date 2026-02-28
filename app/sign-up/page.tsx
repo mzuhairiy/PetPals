@@ -3,8 +3,11 @@
 import type React from "react"
 
 import Link from "next/link"
-import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,41 +16,44 @@ import { PawPrint, Lock, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 
+const signUpSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[0-9]/, "Password must include at least one number")
+    .regex(/[!@#$%^&*(),.?\":{}|<>]/, "Password must include at least one special character"),
+  confirmPassword: z.string(),
+  terms: z.boolean().refine((val) => val === true, "You must agree to the terms")
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"]
+})
+
+type SignUpFormData = z.infer<typeof signUpSchema>
+
 export default function SignUpPage() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const { register } = useAuth()
+  const { register: registerUser } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    trigger
+  } = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
+    mode: "onBlur"
+  })
 
-    if (password !== confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Password too short",
-        description: "Password must be at least 6 characters.",
-        variant: "destructive",
-      })
-      return
-    }
-
+  const onSubmit = async (data: SignUpFormData) => {
     setIsLoading(true)
 
     try {
-      await register(name, email, password)
+      await registerUser(data.name, data.email, data.password)
       toast({
         title: "Account created!",
         description: "Welcome to PetPals!",
@@ -74,11 +80,20 @@ export default function SignUpPage() {
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>Enter your information to create an account</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required />
+              <Input
+                id="name"
+                placeholder="John Doe"
+                {...register("name")}
+                onBlur={() => trigger("name")}
+                className={errors.name ? "border-red-500" : ""}
+              />
+              {errors.name && (
+                <p className="text-red-500 text-xs">{errors.name.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -86,36 +101,47 @@ export default function SignUpPage() {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                {...register("email")}
+                onBlur={() => trigger("email")}
+                className={errors.email ? "border-red-500" : ""}
               />
+              {errors.email && (
+                <p className="text-red-500 text-xs">{errors.email.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                {...register("password")}
+                onBlur={() => trigger("password")}
+                className={errors.password ? "border-red-500" : ""}
               />
-              <p className="text-xs text-muted-foreground">
-                Password must be at least 8 characters long and include a number and a special character.
-              </p>
+              {errors.password && (
+                <p className="text-red-500 text-xs">{errors.password.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
+                {...register("confirmPassword")}
+                onBlur={() => trigger("confirmPassword")}
+                className={errors.confirmPassword ? "border-red-500" : ""}
               />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>
+              )}
             </div>
             <div className="flex items-center space-x-2">
-              <input type="checkbox" id="terms" className="rounded border-gray-300" required />
+              <input
+                type="checkbox"
+                id="terms"
+                {...register("terms")}
+                className="rounded border-gray-300"
+              />
               <Label htmlFor="terms" className="text-sm font-normal">
                 I agree to the{" "}
                 <Link href="/terms" className="text-primary hover:underline">
@@ -127,6 +153,9 @@ export default function SignUpPage() {
                 </Link>
               </Label>
             </div>
+            {errors.terms && (
+              <p className="text-red-500 text-xs">{errors.terms.message}</p>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col">
             <Button className="w-full" type="submit" disabled={isLoading}>

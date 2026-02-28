@@ -204,3 +204,135 @@ export async function searchProducts(query: string): Promise<any[]> {
     return []
   }
 }
+
+// ============ ADMIN API FUNCTIONS ============
+
+export interface AdminProductInput {
+  name: string
+  slug: string
+  description?: string
+  price: number
+  originalPrice?: number
+  image?: string
+  category: string
+  pet: string
+  stock: number
+  tags?: string[]
+  isNew?: boolean
+  discount?: number
+  featured?: boolean
+}
+
+export async function createProduct(data: AdminProductInput): Promise<any> {
+  const response = await authFetch(`${API_URL}/api/products`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to create product')
+  }
+  
+  const result = await response.json()
+  return result.data
+}
+
+export async function updateProduct(id: string, data: Partial<AdminProductInput>): Promise<any> {
+  const response = await authFetch(`${API_URL}/api/products/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to update product')
+  }
+  
+  const result = await response.json()
+  return result.data
+}
+
+export async function deleteProduct(id: string): Promise<void> {
+  const response = await authFetch(`${API_URL}/api/products/${id}`, {
+    method: 'DELETE'
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete product')
+  }
+}
+
+export interface AdminOrder {
+  id: string
+  createdAt: string
+  subtotal: number
+  tax: number
+  shipping: number
+  total: number
+  status: string
+  user: {
+    id: string
+    name: string
+    email: string
+  }
+  shippingStreet?: string
+  shippingCity?: string
+  shippingState?: string
+  shippingZipCode?: string
+  shippingCountry?: string
+  payment?: {
+    id: string
+    status: string
+    transactionId?: string
+    provider: string
+  }
+  items: {
+    id: string
+    productId: string
+    nameSnapshot: string
+    price: number
+    quantity: number
+  }[]
+}
+
+export interface OrdersResponse {
+  data: AdminOrder[]
+  metadata?: {
+    totalCount: number
+    currentPage: number
+    totalPages: number
+    limit: number
+  }
+}
+
+export async function fetchAllOrders(status?: string, page = 1): Promise<OrdersResponse> {
+  const params = new URLSearchParams()
+  params.append('page', page.toString())
+  if (status) {
+    params.append('status', status)
+  }
+  
+  const response = await authFetch(`${API_URL}/api/orders/all?${params.toString()}`)
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch orders')
+  }
+  
+  return response.json()
+}
+
+export async function updateOrderStatus(orderId: string, status: string): Promise<any> {
+  const response = await authFetch(`${API_URL}/api/orders/${orderId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to update order status')
+  }
+  
+  const result = await response.json()
+  return result.data
+}

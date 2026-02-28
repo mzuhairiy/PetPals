@@ -167,6 +167,89 @@ export async function getOrders(req: AuthRequest, res: Response) {
   })
 }
 
+// Admin: Get all orders from all users
+export async function getAllOrders(req: AuthRequest, res: Response) {
+  const { status, page = '1', limit = '20' } = req.query
+
+  const pageNum = parseInt(page as string, 10)
+  const limitNum = parseInt(limit as string, 10)
+  const skip = (pageNum - 1) * limitNum
+
+  const where: any = {}
+  if (status) {
+    where.status = status.toString()
+  }
+
+  const [orders, totalCount] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        items: {
+          include: {
+            product: true
+          }
+        },
+        payment: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      skip,
+      take: limitNum
+    }),
+    prisma.order.count({ where })
+  ])
+
+  const transformedOrders = orders.map(order => ({
+    id: order.id,
+    createdAt: order.createdAt,
+    subtotal: Number(order.subtotal),
+    tax: Number(order.tax),
+    shipping: Number(order.shipping),
+    total: Number(order.total),
+    status: order.status,
+    user: order.user,
+    shippingStreet: order.shippingStreet,
+    shippingCity: order.shippingCity,
+    shippingState: order.shippingState,
+    shippingZipCode: order.shippingZipCode,
+    shippingCountry: order.shippingCountry,
+    payment: order.payment ? {
+      id: order.payment.id,
+      status: order.payment.status,
+      transactionId: order.payment.transactionId,
+      provider: order.payment.provider
+    } : null,
+    items: order.items.map(item => ({
+      id: item.id,
+      productId: item.productId,
+      nameSnapshot: item.nameSnapshot,
+      price: Number(item.price),
+      quantity: item.quantity
+    }))
+  }))
+
+  const totalPages = Math.ceil(totalCount / limitNum)
+
+  res.json({
+    success: true,
+    data: transformedOrders,
+    metadata: {
+      totalCount,
+      currentPage: pageNum,
+      totalPages,
+      limit: limitNum
+    }
+  })
+}
+
 export async function getOrder(req: AuthRequest, res: Response) {
   const { id } = req.params
 
@@ -228,9 +311,49 @@ export async function updateOrderStatus(req: AuthRequest, res: Response) {
   const { id } = req.params
   const { status } = req.body
 
-  const order = await prisma.order.update({
+  // Get current order to check status change
+  const currentOrder = await prisma.order.findUnique({
     where: { id: id as string },
-    data: { status },
+    include: {
+      items: true
+    }
+  })
+
+  if (!currentOrder) {
+    throw new NotFoundError('Order')
+  }
+
+  // If changing to CANCELLED, restore stock for all items
+  if (status === 'CANCELLED' && currentOrder.status !== 'CANCELLED') {
+    await prisma.$transaction(async (tx) => {
+      // Restore stock for each item
+      for (const item of currentOrder.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            stock: {
+              increment: item.quantity
+            }
+          }
+        })
+      }
+
+      // Update order status
+      await tx.order.update({
+        where: { id: id as string },
+        data: { status }
+      })
+    })
+  } else {
+    // Just update status without stock changes
+    await prisma.order.update({
+      where: { id: id as string },
+      data: { status }
+    })
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: id as string },
     include: {
       items: {
         include: {

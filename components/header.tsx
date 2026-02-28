@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ShoppingCart, Search, Menu, X, User, Heart, PawPrint, Cat, Dog, LogOut, Loader2, Package } from "lucide-react"
+import { ShoppingCart, Search, Menu, X, User, Heart, PawPrint, Cat, Dog, LogOut, Loader2, Package, Settings } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn, formatPrice } from "@/lib/utils"
@@ -252,6 +252,14 @@ export default function Header() {
                     Orders
                   </Button>
                 </Link>
+                {user?.role === "ADMIN" && (
+                  <Link href="/admin">
+                    <Button variant="ghost" size="sm" className="mr-1">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Admin
+                    </Button>
+                  </Link>
+                )}
                 <Link href="/account">
                   <Button variant="ghost" size="sm" className="mr-1">
                     <User className="mr-2 h-4 w-4" />
@@ -361,6 +369,16 @@ export default function Header() {
                   <Package className="h-5 w-5" />
                   Orders
                 </Link>
+                {user?.role === "ADMIN" && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-2 text-lg font-semibold"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Settings className="h-5 w-5" />
+                    Admin
+                  </Link>
+                )}
                 <Link
                   href="/account"
                   className="flex items-center gap-2 text-lg font-semibold"

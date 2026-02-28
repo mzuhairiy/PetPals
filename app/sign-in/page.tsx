@@ -45,11 +45,22 @@ export default function SignInPage() {
 
     try {
       await login(data.email, data.password)
+      
+      // Get user from localStorage to check role
+      const storedUser = localStorage.getItem("user")
+      const user = storedUser ? JSON.parse(storedUser) : null
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
       })
-      router.push("/")
+      
+      // Redirect admin to admin panel, others to home
+      if (user?.role === "ADMIN") {
+        router.push("/admin")
+      } else {
+        router.push("/")
+      }
     } catch (error: any) {
       toast({
         title: "Sign in failed",

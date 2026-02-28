@@ -8,6 +8,7 @@ import { CartProvider } from "@/components/cart-provider"
 import { WishlistProvider } from "@/components/wishlist-provider"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { ErrorBoundary } from "@/components/error-boundary"
+import LayoutClient from "./layout-client"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -29,11 +30,9 @@ export default function RootLayout({
           <CartProvider>
             <WishlistProvider>
               <ErrorBoundary>
-                <div className="flex min-h-screen flex-col">
-                  <Header />
-                  <main className="flex-1">{children}</main>
-                  <Footer />
-                </div>
+                <LayoutClient>
+                  {children}
+                </LayoutClient>
                 <Toaster />
               </ErrorBoundary>
             </WishlistProvider>

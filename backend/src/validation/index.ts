@@ -45,7 +45,9 @@ export const createProductSchema = z.object({
   featured: z.boolean().optional()
 })
 
-export const updateProductSchema = createProductSchema.partial()
+export const updateProductSchema = createProductSchema.partial().extend({
+  originalPrice: z.number().positive().nullable().optional()
+})
 
 export const createOrderSchema = z.object({
   items: z.array(z.object({

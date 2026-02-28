@@ -12,6 +12,7 @@ export function SafeImage({
   fallbackSrc = "/placeholder.svg?height=400&width=400", 
   alt,
   fill,
+  onLoad,
   ...props 
 }: SafeImageProps) {
   const [imgSrc, setImgSrc] = useState(src)
@@ -26,10 +27,13 @@ export function SafeImage({
     }
   }, [fallbackSrc, hasError])
 
-  // Reset error state when src changes
-  const handleLoad = useCallback(() => {
+  // Reset error state when src changes, and call parent's onLoad
+  const handleLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setHasError(false)
-  }, [])
+    if (onLoad) {
+      onLoad(e)
+    }
+  }, [onLoad])
 
   return (
     <Image

@@ -4,7 +4,8 @@ import {
   getOrders,
   getOrder,
   updateOrderStatus,
-  getAllOrders
+  getAllOrders,
+  getDashboardStats
 } from '../controllers/orders'
 import { authenticate, requireRole } from '../middleware/auth'
 import { validateBody } from '../middleware/validation'
@@ -21,6 +22,7 @@ router.post(
 )
 router.get('/', authenticate, getOrders)
 router.get('/all', authenticate, requireRole(Role.ADMIN), getAllOrders)
+router.get('/stats', authenticate, requireRole(Role.ADMIN), getDashboardStats)
 router.get('/:id', authenticate, getOrder)
 router.patch(
   '/:id/status',

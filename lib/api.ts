@@ -336,3 +336,30 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
   const result = await response.json()
   return result.data
 }
+
+export interface DashboardStats {
+  totalOrders: number
+  totalRevenue: number
+  totalProducts: number
+  lowStockProducts: number
+  ordersByStatus: { status: string; count: number }[]
+  recentOrders: {
+    id: string
+    total: number
+    status: string
+    createdAt: string
+  }[]
+  monthlyChartData: { month: string; revenue: number }[]
+  dailyChartData: { date: string; orders: number }[]
+}
+
+export async function fetchDashboardStats(): Promise<DashboardStats> {
+  const response = await authFetch(`${API_URL}/api/orders/stats`)
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch dashboard stats')
+  }
+  
+  const result = await response.json()
+  return result.data
+}

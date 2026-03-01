@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Package, ShoppingCart, LayoutDashboard, LogOut, Settings, ArrowLeft } from "lucide-react"
+import { Package, ShoppingCart, LayoutDashboard, LogOut, PawPrint } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -51,21 +51,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading || authLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-800 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Admin Header - Different from customer header */}
-      <header className="sticky top-0 z-50 w-full bg-slate-900 text-white">
+    <div className="min-h-screen bg-gray-50">
+      {/* Admin Header - White background with logo */}
+      <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/admin" className="flex items-center gap-2 font-bold text-lg">
-              <Settings className="h-5 w-5" />
-              <span>Admin Panel</span>
+            <Link href="/admin" className="flex items-center gap-2">
+              <PawPrint className="h-6 w-6 text-primary" />
+              <span className="font-bold text-lg text-gray-900">PetPals Admin</span>
             </Link>
             
             <nav className="hidden md:flex items-center gap-1">
@@ -76,12 +76,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                      "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
                       isActive
-                        ? "bg-white/10 text-white"
-                        : "text-slate-300 hover:text-white hover:bg-white/5"
+                        ? "bg-primary/10 text-primary"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                     )}
                   >
+                    <item.icon className="h-4 w-4" />
                     {item.title}
                   </Link>
                 )
@@ -90,11 +91,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-300 hidden sm:inline">{user?.name}</span>
+            <span className="text-sm text-gray-600 hidden sm:inline">{user?.name}</span>
             <Button
               variant="ghost"
               size="sm"
-              className="text-slate-300 hover:text-white hover:bg-white/10"
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 mr-2" />

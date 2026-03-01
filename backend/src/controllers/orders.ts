@@ -369,3 +369,129 @@ export async function updateOrderStatus(req: AuthRequest, res: Response) {
     data: order
   })
 }
+
+// Admin: Get dashboard stats
+export async function getDashboardStats(req: AuthRequest, res: Response) {
+  // Get total orders count
+  const totalOrders = await prisma.order.count()
+  
+  // Get total revenue
+  const revenueAgg = await prisma.order.aggregate({
+    _sum: {
+      total: true
+    }
+  })
+  const totalRevenue = Number(revenueAgg._sum.total || 0)
+  
+  // Get total products
+  const totalProducts = await prisma.product.count()
+  
+  // Get low stock products count (stock <= 10)
+  const lowStockProducts = await prisma.product.count({
+    where: {
+      stock: {
+        lte: 10
+      }
+    }
+  })
+  
+  // Get orders by status
+  const ordersByStatus = await prisma.order.groupBy({
+    by: ['status'],
+    _count: {
+      status: true
+    }
+  })
+  
+  // Get recent orders (last 7 days)
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  
+  const recentOrders = await prisma.order.findMany({
+    where: {
+      createdAt: {
+        gte: sevenDaysAgo
+      }
+    },
+    select: {
+      id: true,
+      total: true,
+      createdAt: true,
+      status: true
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  })
+  
+  // Get monthly orders for chart (last 6 months)
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+  
+  const monthlyOrders = await prisma.order.findMany({
+    where: {
+      createdAt: {
+        gte: sixMonthsAgo
+      }
+    },
+    select: {
+      total: true,
+      createdAt: true
+    },
+    orderBy: {
+      createdAt: 'asc'
+    }
+  })
+  
+  // Group by month
+  const monthlyData: { [key: string]: number } = {}
+  monthlyOrders.forEach(order => {
+    const monthKey = order.createdAt.toISOString().slice(0, 7) // YYYY-MM
+    monthlyData[monthKey] = (monthlyData[monthKey] || 0) + Number(order.total)
+  })
+  
+  const monthlyChartData = Object.entries(monthlyData).map(([month, revenue]) => ({
+    month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+    revenue
+  }))
+  
+  // Get orders by day for last 7 days
+  const dailyData: { [key: string]: number } = {}
+  recentOrders.forEach(order => {
+    const dayKey = order.createdAt.toISOString().slice(0, 10) // YYYY-MM-DD
+    dailyData[dayKey] = (dailyData[dayKey] || 0) + 1
+  })
+  
+  const dailyChartData = []
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    const dayKey = date.toISOString().slice(0, 10)
+    dailyChartData.push({
+      date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      orders: dailyData[dayKey] || 0
+    })
+  }
+  
+  res.json({
+    success: true,
+    data: {
+      totalOrders,
+      totalRevenue,
+      totalProducts,
+      lowStockProducts,
+      ordersByStatus: ordersByStatus.map(o => ({
+        status: o.status,
+        count: o._count.status
+      })),
+      recentOrders: recentOrders.slice(0, 5).map(o => ({
+        id: o.id,
+        total: Number(o.total),
+        status: o.status,
+        createdAt: o.createdAt
+      })),
+      monthlyChartData,
+      dailyChartData
+    }
+  })
+}

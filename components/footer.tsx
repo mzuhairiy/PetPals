@@ -60,12 +60,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=cat" className="text-sm text-muted-foreground hover:text-primary">
+                <Link href="/shop?pet=cat" className="text-sm text-muted-foreground hover:text-primary">
                   Cat Products
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=dog" className="text-sm text-muted-foreground hover:text-primary">
+                <Link href="/shop?pet=dog" className="text-sm text-muted-foreground hover:text-primary">
                   Dog Products
                 </Link>
               </li>

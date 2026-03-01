@@ -122,13 +122,13 @@ export default function Header() {
                 Shop
               </Link>
               <Link
-                href="/shop?category=cat"
+                href="/shop?pet=cat"
                 className="text-sm font-medium transition-colors hover:text-primary flex items-center"
               >
                 <Cat className="mr-1 h-4 w-4" /> Cats
               </Link>
               <Link
-                href="/shop?category=dog"
+                href="/shop?pet=dog"
                 className="text-sm font-medium transition-colors hover:text-primary flex items-center"
               >
                 <Dog className="mr-1 h-4 w-4" /> Dogs
@@ -339,14 +339,14 @@ export default function Header() {
               Shop
             </Link>
             <Link
-              href="/shop?category=cat"
+              href="/shop?pet=cat"
               className="flex items-center gap-2 text-lg font-semibold"
               onClick={() => setIsMenuOpen(false)}
             >
               <Cat className="h-5 w-5" /> Cats
             </Link>
             <Link
-              href="/shop?category=dog"
+              href="/shop?pet=dog"
               className="flex items-center gap-2 text-lg font-semibold"
               onClick={() => setIsMenuOpen(false)}
             >

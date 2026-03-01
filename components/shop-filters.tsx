@@ -28,6 +28,7 @@ export default function ShopFilters() {
 
   // Price range from database
   const [priceRangeMax, setPriceRangeMax] = useState(10000)
+  const [isPriceRangeLoaded, setIsPriceRangeLoaded] = useState(false)
 
   // Local state for filters
   const [category, setCategory] = useState(currentCategory)
@@ -46,6 +47,7 @@ export default function ShopFilters() {
         if (result.success && result.data) {
           const max = Math.ceil(result.data.max * 1.1) // Add 10% buffer
           setPriceRangeMax(max)
+          setIsPriceRangeLoaded(true)
           // Initialize with fetched max if not set
           if (!currentMaxPrice) {
             setPriceRange([0, max])
@@ -59,46 +61,73 @@ export default function ShopFilters() {
     fetchPriceRange()
   }, [])
 
-  // Debounced URL update
+  // Initialize state from URL on mount
   useEffect(() => {
+    setCategory(searchParams.get("category") || "")
+    setPet(searchParams.get("pet") || "")
+    setSort(searchParams.get("sort") || "")
+    
+    const min = searchParams.get("min")
+    const max = searchParams.get("max")
+    if (min || max) {
+      setPriceRange([
+        min ? Number(min) : 0,
+        max ? Number(max) : priceRangeMax
+      ])
+      if (min) setMinInput(min)
+      if (max) setMaxInput(max)
+    }
+  }, [])
+
+  // Debounced URL update - only for user-initiated filter changes
+  // Skip on initial mount to preserve URL params
+  useEffect(() => {
+    // Skip if price range not loaded yet
+    if (!isPriceRangeLoaded) return
+    
+    // Skip if no filters are set - don't need to update URL
+    if (!category && !pet && !sort && priceRange[0] === 0 && priceRange[1] === priceRangeMax) {
+      return
+    }
+    
     const timer = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString())
+      const params = new URLSearchParams()
 
       if (category) {
         params.set("category", category)
-      } else {
-        params.delete("category")
       }
 
       if (pet) {
         params.set("pet", pet)
-      } else {
-        params.delete("pet")
       }
 
       if (sort) {
         params.set("sort", sort)
-      } else {
-        params.delete("sort")
       }
 
       if (priceRange[0] > 0) {
         params.set("min", priceRange[0].toString())
-      } else {
-        params.delete("min")
       }
 
       if (priceRange[1] < priceRangeMax) {
         params.set("max", priceRange[1].toString())
-      } else {
-        params.delete("max")
       }
 
-      router.push(`/shop?${params.toString()}`)
+      const newParams = params.toString()
+      const currentParams = searchParams.toString()
+      
+      // Only push if params actually changed from current URL
+      if (newParams !== currentParams) {
+        if (newParams) {
+          router.push(`/shop?${newParams}`)
+        } else {
+          router.push("/shop")
+        }
+      }
     }, DEBOUNCE_DELAY)
 
     return () => clearTimeout(timer)
-  }, [category, pet, sort, priceRange, priceRangeMax, router, searchParams])
+  }, [category, pet, sort, priceRange, priceRangeMax, router, searchParams, isPriceRangeLoaded])
 
   // Handle slider change
   const handleSliderChange = (value: number[]) => {

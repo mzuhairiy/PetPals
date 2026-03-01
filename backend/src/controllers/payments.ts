@@ -186,12 +186,17 @@ export async function createSnapTransaction(req: AuthRequest, res: Response) {
 export async function handleWebhook(req: Request, res: Response) {
   console.log("=== Webhook hit ===")
   console.log("Body:", JSON.stringify(req.body))
-  
+
+  // ALWAYS return 200 to acknowledge receipt - this is critical for Midtrans
+  // Midtrans will retry if we return 4xx or 5xx
+
   try {
     const { order_id, transaction_status, payment_type, fraud_status } = req.body
 
+    // Log the notification even if order_id is missing
     if (!order_id) {
-      res.status(400).json({ message: 'Missing order_id' })
+      console.log("Webhook received but no order_id - acknowledging anyway")
+      res.status(200).json({ success: true, message: 'Webhook acknowledged' })
       return
     }
 
@@ -201,8 +206,10 @@ export async function handleWebhook(req: Request, res: Response) {
       include: { payment: true }
     })
 
+    // If order not found, still acknowledge (but log warning)
     if (!order) {
-      res.status(404).json({ message: 'Order not found' })
+      console.warn("Webhook: Order not found:", order_id)
+      res.status(200).json({ success: true, message: 'Webhook acknowledged - order not found' })
       return
     }
 
@@ -252,10 +259,11 @@ export async function handleWebhook(req: Request, res: Response) {
 
     console.log("Updated order:", order_id, "to status:", orderStatus)
 
-    res.json({ success: true, message: 'Webhook processed' })
+    res.status(200).json({ success: true, message: 'Webhook processed' })
   } catch (error: any) {
+    // Log error but STILL return 200 to prevent Midtrans retries
     console.error("Webhook error:", error)
-    res.status(500).json({ message: 'Internal server error' })
+    res.status(200).json({ success: true, message: 'Webhook acknowledged with error' })
   }
 }
 

@@ -31,6 +31,15 @@ export const config = {
         : 'https://app.sandbox.midtrans.com'
     }
   },
+  biteship: {
+    apiKey: process.env.BITESHIP_API_KEY || '',
+    isProduction: process.env.BITESHIP_IS_PRODUCTION === 'true',
+    getBaseUrl: function() {
+      return this.isProduction
+        ? 'https://api.biteship.com'
+        : 'https://api.biteship.com'
+    }
+  },
   checkout: {
     taxPercentage: 10, // 10% tax
     freeShippingThreshold: 560000, // Free shipping over 560,000 IDR (~$35)

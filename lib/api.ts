@@ -281,6 +281,12 @@ export interface AdminOrder {
   shippingState?: string
   shippingZipCode?: string
   shippingCountry?: string
+  // Shipment fields
+  shipmentId?: string
+  trackingId?: string
+  courier?: string
+  courierService?: string
+  shippingStatus?: string
   payment?: {
     id: string
     status: string
@@ -358,6 +364,70 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   
   if (!response.ok) {
     throw new Error('Failed to fetch dashboard stats')
+  }
+  
+  const result = await response.json()
+  return result.data
+}
+
+// ============ SHIPMENT API FUNCTIONS ============
+
+export interface ShipmentInfo {
+  shipmentId?: string
+  trackingId?: string
+  courier?: string
+  courierService?: string
+  shippingStatus?: string
+}
+
+export async function createShipment(orderId: string): Promise<any> {
+  const response = await authFetch(`${API_URL}/api/shipments/create/${orderId}`, {
+    method: 'POST'
+  })
+  
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to create shipment' }))
+    throw new Error(error.error || 'Failed to create shipment')
+  }
+  
+  return response.json()
+}
+
+export async function retryShipment(orderId: string): Promise<any> {
+  const response = await authFetch(`${API_URL}/api/shipments/retry/${orderId}`, {
+    method: 'POST'
+  })
+  
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to retry shipment' }))
+    throw new Error(error.error || 'Failed to retry shipment')
+  }
+  
+  return response.json()
+}
+
+export async function getShipmentStatus(orderId: string): Promise<ShipmentInfo> {
+  const response = await authFetch(`${API_URL}/api/shipments/status/${orderId}`)
+  
+  if (!response.ok) {
+    throw new Error('Failed to get shipment status')
+  }
+  
+  const result = await response.json()
+  return result.data
+}
+
+export interface CanEditStatusResult {
+  canEdit: boolean
+  reason?: string
+  allowedStatuses?: string[]
+}
+
+export async function checkCanEditStatus(orderId: string): Promise<CanEditStatusResult> {
+  const response = await authFetch(`${API_URL}/api/shipments/can-edit/${orderId}`)
+  
+  if (!response.ok) {
+    throw new Error('Failed to check edit permission')
   }
   
   const result = await response.json()

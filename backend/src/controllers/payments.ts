@@ -108,23 +108,46 @@ export async function createSnapTransaction(req: AuthRequest, res: Response) {
     console.log("URL:", `${config.midtrans.getBaseUrl()}/snap/v1/transactions`)
 
     // Call Midtrans Snap API (correct endpoint for Snap)
+    // With retry logic for transient network issues
     const midtransUrl = `${config.midtrans.getBaseUrl()}/snap/v1/transactions`
     const authString = Buffer.from(config.midtrans.serverKey + ':').toString('base64')
-
-    const midtransResponse = await fetch(midtransUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${authString}`
-      },
-      body: JSON.stringify({
-        transaction_details: transactionDetails,
-        item_details: itemDetails,
-        customer_details: customerDetails
-      })
-    })
-
-    const midtransData = await midtransResponse.json()
+    
+    let midtransResponse: globalThis.Response | null = null
+    let lastError: Error | null = null
+    const maxRetries = 3
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Midtrans attempt ${attempt}/${maxRetries}`)
+        midtransResponse = await fetch(midtransUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Basic ${authString}`
+          },
+          body: JSON.stringify({
+            transaction_details: transactionDetails,
+            item_details: itemDetails,
+            customer_details: customerDetails
+          })
+        })
+        // If successful, break out of retry loop
+        break
+      } catch (error) {
+        lastError = error as Error
+        console.error(`Midtrans attempt ${attempt} failed:`, error.message)
+        // Wait before retrying (exponential backoff)
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+        }
+      }
+    }
+    
+    if (!midtransResponse) {
+      throw new Error(`Failed to connect to Midtrans after ${maxRetries} attempts: ${lastError?.message}`)
+    }
+    
+    const midtransData = await midtransResponse.json() as any
     console.log("Midtrans response status:", midtransResponse.status)
     console.log("Midtrans response:", JSON.stringify(midtransData))
 
@@ -258,6 +281,9 @@ export async function handleWebhook(req: Request, res: Response) {
     })
 
     console.log("Updated order:", order_id, "to status:", orderStatus)
+
+    // Note: Shipment creation is manual - admin creates it from admin panel
+    // This allows admin to prepare/pack the items before creating shipment
 
     res.status(200).json({ success: true, message: 'Webhook processed' })
   } catch (error: any) {

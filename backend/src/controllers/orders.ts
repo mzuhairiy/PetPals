@@ -4,6 +4,7 @@ import { AuthRequest, Role } from '../types'
 import { NotFoundError, UnauthorizedError, ConflictError, BadRequestError } from '../utils/errors'
 import { createOrderSchema } from '../validation'
 import { config } from '../config'
+import { OrderStatusService } from '../services/orderStatusService'
 
 export async function createOrder(req: AuthRequest, res: Response) {
   const { items, shippingAddress } = createOrderSchema.parse(req.body)
@@ -221,6 +222,12 @@ export async function getAllOrders(req: AuthRequest, res: Response) {
     shippingState: order.shippingState,
     shippingZipCode: order.shippingZipCode,
     shippingCountry: order.shippingCountry,
+    // Shipment fields
+    shipmentId: (order as any).shipmentId,
+    trackingId: (order as any).trackingId,
+    courier: (order as any).courier,
+    courierService: (order as any).courierService,
+    shippingStatus: (order as any).shippingStatus,
     payment: order.payment ? {
       id: order.payment.id,
       status: order.payment.status,
@@ -311,16 +318,26 @@ export async function updateOrderStatus(req: AuthRequest, res: Response) {
   const { id } = req.params
   const { status } = req.body
 
-  // Get current order to check status change
+  // Check if admin can edit this order's status
+  const permission = await OrderStatusService.canAdminEditStatus(id as string)
+  if (!permission.canEdit) {
+    res.status(403).json({ error: permission.reason || 'Cannot edit status' })
+    return
+  }
+
+  // Validate transition is allowed
   const currentOrder = await prisma.order.findUnique({
     where: { id: id as string },
-    include: {
-      items: true
-    }
+    include: { items: true }
   })
-
+  
   if (!currentOrder) {
     throw new NotFoundError('Order')
+  }
+  
+  if (!OrderStatusService.isValidTransition(currentOrder.status as any, status)) {
+    res.status(400).json({ error: 'Invalid status transition' })
+    return
   }
 
   // If changing to CANCELLED, restore stock for all items

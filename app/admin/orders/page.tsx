@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ShoppingCart, RefreshCw } from "lucide-react"
+import { ShoppingCart, RefreshCw, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -19,12 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { fetchAllOrders, updateOrderStatus, AdminOrder } from "@/lib/api"
+import { fetchAllOrders, updateOrderStatus, createShipment, retryShipment, checkCanEditStatus, AdminOrder } from "@/lib/api"
 import { formatPrice } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 
-const ORDER_STATUSES = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]
+// Admin can only edit these statuses when no shipment exists
+const ALLOWED_ADMIN_STATUSES = ["PROCESSING", "CANCELLED"]
 
 export default function AdminOrdersPage() {
   const { toast } = useToast()
@@ -32,6 +32,9 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([])
   const [statusFilter, setStatusFilter] = useState<string>("")
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
+  const [isCreatingShipment, setIsCreatingShipment] = useState<string | null>(null)
+  // Track which orders have editable status
+  const [editableOrders, setEditableOrders] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     loadOrders()
@@ -41,7 +44,18 @@ export default function AdminOrdersPage() {
     setIsLoading(true)
     try {
       const response = await fetchAllOrders(statusFilter || undefined)
-      setOrders(response.data || [])
+      const ordersData = response.data || []
+      setOrders(ordersData)
+      
+      // Check which orders can be edited by admin
+      const editableSet = new Set<string>()
+      for (const order of ordersData) {
+        // Admin can only edit PROCESSING orders (when preparing item, before shipment)
+        if (!order.shipmentId && order.status === 'PROCESSING') {
+          editableSet.add(order.id)
+        }
+      }
+      setEditableOrders(editableSet)
     } catch (error) {
       console.error("Failed to load orders:", error)
     } finally {
@@ -62,25 +76,45 @@ export default function AdminOrdersPage() {
     }
   }
 
+  const handleCreateShipment = async (orderId: string) => {
+    setIsCreatingShipment(orderId)
+    try {
+      await createShipment(orderId)
+      toast({ title: "Shipment created successfully" })
+      loadOrders()
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to create shipment", variant: "destructive" })
+    } finally {
+      setIsCreatingShipment(null)
+    }
+  }
+
+  const handleRetryShipment = async (orderId: string) => {
+    setIsCreatingShipment(orderId)
+    try {
+      await retryShipment(orderId)
+      toast({ title: "Shipment retry successful" })
+      loadOrders()
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to retry shipment", variant: "destructive" })
+    } finally {
+      setIsCreatingShipment(null)
+    }
+  }
+
   const handleFilterChange = (value: string) => {
     setStatusFilter(value === "all" ? "" : value)
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return <Badge variant="outline">Pending</Badge>
-      case "PROCESSING":
-        return <Badge variant="default">Processing</Badge>
-      case "SHIPPED":
-        return <Badge variant="default" className="bg-blue-500">Shipped</Badge>
-      case "DELIVERED":
-        return <Badge variant="secondary">Delivered</Badge>
-      case "CANCELLED":
-        return <Badge variant="destructive">Cancelled</Badge>
-      default:
-        return <Badge>{status}</Badge>
-    }
+  // Format order status to sentence case
+  const getStatusText = (status: string) => {
+    return status.charAt(0) + status.slice(1).toLowerCase()
+  }
+
+  // Format shipping status to sentence case (e.g., picked_up -> Picked up)
+  const formatShippingStatus = (status: string | undefined) => {
+    if (!status) return '-'
+    return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
   }
 
   const formatDate = (dateString: string) => {
@@ -91,6 +125,17 @@ export default function AdminOrdersPage() {
       hour: "2-digit",
       minute: "2-digit"
     })
+  }
+
+  // Check if status select should be disabled
+  const isStatusDisabled = (order: AdminOrder) => {
+    // Disable if shipment exists
+    if (order.shipmentId) return true
+    // Disable if status is not PROCESSING
+    if (order.status !== 'PROCESSING') return true
+    // Disable if currently updating
+    if (isUpdating === order.id) return true
+    return false
   }
 
   if (isLoading) {
@@ -123,9 +168,9 @@ export default function AdminOrdersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                {ORDER_STATUSES.map((status) => (
+                {ALLOWED_ADMIN_STATUSES.map((status) => (
                   <SelectItem key={status} value={status}>
-                    {status.charAt(0) + status.slice(1).toLowerCase()}
+                    {getStatusText(status)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -141,6 +186,7 @@ export default function AdminOrdersPage() {
                 <TableHead>Items</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Shipment</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -148,7 +194,7 @@ export default function AdminOrdersPage() {
             <TableBody>
               {orders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No orders found
                   </TableCell>
                 </TableRow>
@@ -180,28 +226,81 @@ export default function AdminOrdersPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {getStatusBadge(order.status)}
+                      <span className="text-sm">{getStatusText(order.status)}</span>
+                    </TableCell>
+                    <TableCell>
+                      {order.shipmentId ? (
+                        <div className="text-sm">
+                          <span className="font-medium">{order.courier?.toUpperCase()}</span>
+                          {order.trackingId && (
+                            <div className="text-xs text-muted-foreground">
+                              {order.trackingId}
+                            </div>
+                          )}
+                          {order.shippingStatus && (
+                            <span className="text-xs text-muted-foreground">
+                              {formatShippingStatus(order.shippingStatus)}
+                            </span>
+                          )}
+                        </div>
+                      ) : order.status === 'PROCESSING' ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleCreateShipment(order.id)}
+                          disabled={isCreatingShipment === order.id}
+                        >
+                          {isCreatingShipment === order.id ? (
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Package className="h-3 w-3 mr-1" />
+                          )}
+                          Create
+                        </Button>
+                      ) : order.shippingStatus === 'failed' ? (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleRetryShipment(order.id)}
+                          disabled={isCreatingShipment === order.id}
+                        >
+                          {isCreatingShipment === order.id ? (
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                          )}
+                          Retry
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">{formatDate(order.createdAt)}</div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Select
-                        value={order.status}
-                        onValueChange={(value) => handleStatusChange(order.id, value)}
-                        disabled={isUpdating === order.id}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ORDER_STATUSES.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status.charAt(0) + status.slice(1).toLowerCase()}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {isStatusDisabled(order) ? (
+                        <span className="text-xs text-muted-foreground mr-2">
+                          {order.shipmentId ? "Auto-managed" : getStatusText(order.status)}
+                        </span>
+                      ) : (
+                        <Select
+                          value={order.status}
+                          onValueChange={(value) => handleStatusChange(order.id, value)}
+                          disabled={isUpdating === order.id}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ALLOWED_ADMIN_STATUSES.map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {getStatusText(status)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

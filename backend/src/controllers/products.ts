@@ -1,9 +1,29 @@
 import { Request, Response } from 'express'
 import prisma from '../config/database'
-import { AuthRequest, Category, Pet } from '../types'
+import { AuthRequest } from '../types'
 import { NotFoundError } from '../utils/errors'
 import { createProductSchema, updateProductSchema } from '../validation'
-import { Prisma } from '@prisma/client'
+import { Prisma, Category, Pet } from '@prisma/client'
+
+// Helper to convert string to Category enum
+function toCategory(value: string | undefined): Category | undefined {
+  if (!value) return undefined
+  const upper = value.toUpperCase()
+  if (upper === 'FOOD') return Category.FOOD
+  if (upper === 'TOYS') return Category.TOYS
+  if (upper === 'SUPPLEMENTS') return Category.SUPPLEMENTS
+  return undefined
+}
+
+// Helper to convert string to Pet enum
+function toPet(value: string | undefined): Pet | undefined {
+  if (!value) return undefined
+  const upper = value.toUpperCase()
+  if (upper === 'CAT') return Pet.CAT
+  if (upper === 'DOG') return Pet.DOG
+  if (upper === 'BOTH') return Pet.BOTH
+  return undefined
+}
 
 export async function getProducts(req: Request, res: Response) {
   const { category, pet, search, minPrice, maxPrice, sort, page = '1', limit = '20' } = req.query
@@ -15,11 +35,11 @@ export async function getProducts(req: Request, res: Response) {
   const where: Prisma.ProductWhereInput = {}
 
   if (category) {
-    where.category = category.toString().toUpperCase() as Category
+    where.category = toCategory(category.toString())
   }
 
   if (pet) {
-    where.pet = pet.toString().toUpperCase() as Pet
+    where.pet = toPet(pet.toString())
   }
 
   if (search) {

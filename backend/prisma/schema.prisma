@@ -60,6 +60,17 @@ model Order {
   shippingState    String?
   shippingZipCode  String?
   shippingCountry  String?
+  shippingPhone    String?     // Added for Biteship
+  shippingEmail    String?     // Added for Biteship
+  
+  // Biteship shipment fields
+  shipmentId       String?     // Biteship order ID
+  trackingId       String?     // Tracking number
+  courier          String?     // Courier name
+  courierService   String?     // Courier service type
+  shippingStatus   String?     // Current shipping status
+  shippingRawResponse Json?   // Raw response from Biteship
+  
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)

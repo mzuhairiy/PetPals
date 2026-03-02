@@ -56,15 +56,24 @@ export class OrderStatusService {
    * Map shipping status from Biteship to business order status
    */
   static mapShippingToOrderStatus(shippingStatus: string): BusinessOrderStatus {
-    switch (shippingStatus) {
+    // Handle both uppercase and lowercase
+    const status = shippingStatus?.toUpperCase() || ''
+    
+    switch (status) {
       case 'PENDING':
       case 'CONFIRMED':
       case 'ALLOCATED':
-        return 'PROCESSING'
+        // Shipment has been created and confirmed - now waiting for pickup
+        // This is when admin has created the shipment
+        return 'SHIPPED'
       
       case 'PICKED_UP':
+        // Courier has picked up the package - also shipped
+        return 'SHIPPED'
+      
       case 'IN_TRANSIT':
       case 'OUT_FOR_DELIVERY':
+        // Still in transit - keep as SHIPPED
         return 'SHIPPED'
       
       case 'DELIVERED':
@@ -74,8 +83,9 @@ export class OrderStatusService {
         return 'CANCELLED'
       
       default:
-        // Default to PROCESSING for unknown shipping statuses
-        return 'PROCESSING'
+        console.log(`[OrderStatusService] Unknown shipping status: ${shippingStatus}, defaulting to SHIPPED`)
+        // Default to SHIPPED for unknown shipping statuses (shipment was created)
+        return 'SHIPPED'
     }
   }
 
@@ -132,7 +142,7 @@ export class OrderStatusService {
 
       // Check if we should update
       if (!this.shouldUpdateOrderStatus(currentStatus, shippingStatus, newOrderStatus)) {
-        console.log(`[OrderStatusService] Skipping status update: current=${currentStatus}, new would be=${newOrderStatus}`)
+        console.log(`[OrderStatusService] Skipping status update: current=${currentStatus}, new would be=${newOrderStatus}, shippingStatus=${shippingStatus}`)
         return { 
           success: true, 
           orderStatus: currentStatus,

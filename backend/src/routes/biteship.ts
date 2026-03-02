@@ -146,18 +146,21 @@ router.post('/webhook', async (req: AuthRequest, res: Response) => {
       where: { shipmentId: payload.order_id } as any
     })
     
-    if (order) {
-      const orderAny = order as any
-      // If shipping status is the same, skip processing
-      if (orderAny.shippingStatus === shippingStatus) {
-        console.log(`[Biteship] Idempotent: Status unchanged (${shippingStatus})`)
-        return res.status(200).json({ ok: true, message: 'Status unchanged' })
-      }
+    if (!order) {
+      console.warn(`[Biteship] Order not found for shipment: ${payload.order_id}`)
+      return res.status(200).json({ ok: true, message: 'Order not found' })
     }
     
+    const orderAny = order as any
+    // If shipping status is the same, skip processing
+    if (orderAny.shippingStatus === shippingStatus) {
+      console.log(`[Biteship] Idempotent: Status unchanged (${shippingStatus})`)
+      return res.status(200).json({ ok: true, message: 'Status unchanged' })
+    }
+
     // Use OrderStatusService to handle the status update
     const result = await OrderStatusService.handleShippingStatusUpdate(
-      order?.id || payload.order_id,
+      order.id,
       shippingStatus,
       {
         trackingId: trackingNumber,

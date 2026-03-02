@@ -248,10 +248,18 @@ export class BiteshipService {
         courierService
       })
 
+      // Log full response for debugging
+      console.log(`[Biteship] Full shipment response:`, JSON.stringify(shipment, null, 2))
+
       // Determine initial order status based on Biteship status
-      const initialShippingStatus = shipment.status
+      // Biteship API v1 returns 'status' field
+      const shipmentAny = shipment as any
+      const initialShippingStatus = shipmentAny.status || shipmentAny.status_shipment || shipmentAny.order_status || 'CONFIRMED'
+      console.log(`[Biteship] Initial shipment status: '${initialShippingStatus}'`)
+      
       const { OrderStatusService } = await import('./orderStatusService')
       const initialOrderStatus = OrderStatusService.mapShippingToOrderStatus(initialShippingStatus)
+      console.log(`[Biteship] Mapped to order status: ${initialOrderStatus}`)
 
       // Update order with shipment info and status
       await prisma.order.update({

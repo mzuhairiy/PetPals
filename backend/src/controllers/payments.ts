@@ -214,16 +214,16 @@ export async function handleWebhook(req: Request, res: Response) {
     }
 
     // Determine payment status
-    let paymentStatus = 'PENDING'
-    let orderStatus = 'PENDING'
+    let paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED' | 'CANCELLED' = 'PENDING'
+    let orderStatus: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' = 'PENDING'
 
     if (transaction_status === 'capture') {
       if (fraud_status === 'accept') {
-        paymentStatus = 'COMPLETED'
+        paymentStatus = 'PAID'
         orderStatus = 'PROCESSING'
       }
     } else if (transaction_status === 'settlement') {
-      paymentStatus = 'COMPLETED'
+      paymentStatus = 'PAID'
       orderStatus = 'PROCESSING'
     } else if (transaction_status === 'pending') {
       paymentStatus = 'PENDING'
@@ -254,7 +254,7 @@ export async function handleWebhook(req: Request, res: Response) {
     // Update order status
     await prisma.order.update({
       where: { id: order_id },
-      data: { status: orderStatus as any }
+      data: { status: orderStatus }
     })
 
     console.log("Updated order:", order_id, "to status:", orderStatus)

@@ -99,25 +99,44 @@ export default function CheckoutPage() {
     const timer = setTimeout(() => {
       if (Object.keys(formValues).length > 0) {
         sessionStorage.setItem("checkout_form_data", JSON.stringify(formValues))
+        // Also save cart signature
+        const cartSignature = cartItems.map(item => item.id).sort().join(',')
+        sessionStorage.setItem("checkout_cart_signature", cartSignature)
       }
     }, 500)
     return () => clearTimeout(timer)
-  }, [formValues])
+  }, [formValues, cartItems])
 
-  // Load saved form data from sessionStorage on mount
+  // Load saved form data from sessionStorage on mount (only if cart matches)
   useEffect(() => {
+    // Get current cart item IDs as a signature
+    const currentCartIds = cartItems.map(item => item.id).sort().join(',')
+    
+    // Get saved cart signature
+    const savedCartSignature = sessionStorage.getItem("checkout_cart_signature")
     const savedData = sessionStorage.getItem("checkout_form_data")
-    if (savedData) {
+    
+    // If cart is empty or cart has changed, clear form data
+    if (cartItems.length === 0 || currentCartIds !== savedCartSignature) {
+      sessionStorage.removeItem("checkout_form_data")
+      sessionStorage.removeItem("checkout_cart_signature")
+      return
+    }
+    
+    // Load form data if cart matches
+    if (savedData && currentCartIds === savedCartSignature) {
       try {
         const parsed = JSON.parse(savedData)
         Object.keys(parsed).forEach((key) => {
-          setValue(key as keyof CheckoutFormData, parsed[key])
+          if (key !== 'terms') {  // Don't restore terms checkbox
+            setValue(key as keyof CheckoutFormData, parsed[key])
+          }
         })
       } catch (e) {
         console.error("Failed to parse saved form data", e)
       }
     }
-  }, [setValue])
+  }, [setValue, cartItems])
 
   // Clear form data from sessionStorage after successful order
   const clearFormData = () => {

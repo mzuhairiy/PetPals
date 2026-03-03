@@ -114,7 +114,7 @@ export async function createSnapTransaction(req: AuthRequest, res: Response) {
     
     let midtransResponse: globalThis.Response | null = null
     let lastError: Error | null = null
-    const maxRetries = 3
+    const maxRetries = 5
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {

@@ -11,31 +11,32 @@ import { authenticate, requireRole } from '../middleware/auth'
 import { validateBody } from '../middleware/validation'
 import { createProductSchema, updateProductSchema } from '../validation'
 import { Role } from '../types'
+import { asyncHandler } from '../utils/asyncHandler'
 
 const router = Router()
 
-router.get('/', getProducts)
-router.get('/price-range', getPriceRange)
-router.get('/:id', getProduct)
+router.get('/', asyncHandler(getProducts))
+router.get('/price-range', asyncHandler(getPriceRange))
+router.get('/:id', asyncHandler(getProduct))
 router.post(
   '/',
   authenticate,
   requireRole(Role.ADMIN),
   validateBody(createProductSchema),
-  createProduct
+  asyncHandler(createProduct)
 )
 router.put(
   '/:id',
   authenticate,
   requireRole(Role.ADMIN),
   validateBody(updateProductSchema),
-  updateProduct
+  asyncHandler(updateProduct)
 )
 router.delete(
   '/:id',
   authenticate,
   requireRole(Role.ADMIN),
-  deleteProduct
+  asyncHandler(deleteProduct)
 )
 
 export default router

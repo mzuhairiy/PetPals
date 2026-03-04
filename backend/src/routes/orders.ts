@@ -11,6 +11,7 @@ import { authenticate, requireRole } from '../middleware/auth'
 import { validateBody } from '../middleware/validation'
 import { createOrderSchema } from '../validation'
 import { Role } from '../types'
+import { asyncHandler } from '../utils/asyncHandler'
 
 const router = Router()
 
@@ -18,17 +19,17 @@ router.post(
   '/',
   authenticate,
   validateBody(createOrderSchema),
-  createOrder
+  asyncHandler(createOrder)
 )
-router.get('/', authenticate, getOrders)
-router.get('/all', authenticate, requireRole(Role.ADMIN), getAllOrders)
-router.get('/stats', authenticate, requireRole(Role.ADMIN), getDashboardStats)
-router.get('/:id', authenticate, getOrder)
+router.get('/', authenticate, asyncHandler(getOrders))
+router.get('/all', authenticate, requireRole(Role.ADMIN), asyncHandler(getAllOrders))
+router.get('/stats', authenticate, requireRole(Role.ADMIN), asyncHandler(getDashboardStats))
+router.get('/:id', authenticate, asyncHandler(getOrder))
 router.patch(
   '/:id/status',
   authenticate,
   requireRole(Role.ADMIN),
-  updateOrderStatus
+  asyncHandler(updateOrderStatus)
 )
 
 export default router

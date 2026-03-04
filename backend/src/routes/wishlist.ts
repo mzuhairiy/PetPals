@@ -6,13 +6,14 @@ import {
   checkWishlist
 } from '../controllers/wishlist'
 import { authenticate } from '../middleware/auth'
+import { asyncHandler } from '../utils/asyncHandler'
 
 const router = Router()
 
 // All wishlist routes require authentication
-router.get('/', authenticate, getWishlist)
-router.post('/', authenticate, addToWishlist)
-router.delete('/:productId', authenticate, removeFromWishlist)
-router.get('/check/:productId', authenticate, checkWishlist)
+router.get('/', authenticate, asyncHandler(getWishlist))
+router.post('/', authenticate, asyncHandler(addToWishlist))
+router.delete('/:productId', authenticate, asyncHandler(removeFromWishlist))
+router.get('/check/:productId', authenticate, asyncHandler(checkWishlist))
 
 export default router

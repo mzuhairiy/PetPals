@@ -26,6 +26,9 @@ import { useToast } from "@/components/ui/use-toast"
 // Admin can only edit these statuses when no shipment exists
 const ALLOWED_ADMIN_STATUSES = ["PROCESSING", "CANCELLED"]
 
+// All order statuses for filtering
+const ALL_ORDER_STATUSES = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]
+
 export default function AdminOrdersPage() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(true)
@@ -168,7 +171,7 @@ export default function AdminOrdersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                {ALLOWED_ADMIN_STATUSES.map((status) => (
+                {ALL_ORDER_STATUSES.map((status) => (
                   <SelectItem key={status} value={status}>
                     {getStatusText(status)}
                   </SelectItem>

@@ -156,7 +156,7 @@ export default function AdminOrdersPage() {
           <ShoppingCart className="h-6 w-6" />
           <h1 className="text-3xl font-bold">Orders</h1>
         </div>
-        <Button variant="outline" size="icon" onClick={loadOrders}>
+        <Button variant="outline" size="icon" onClick={loadOrders} data-testid="refresh-orders-btn">
           <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
         </Button>
       </div>
@@ -165,14 +165,14 @@ export default function AdminOrdersPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>All Orders</CardTitle>
           <div className="flex items-center gap-4">
-            <Select value={statusFilter || "all"} onValueChange={handleFilterChange}>
-              <SelectTrigger className="w-40">
+            <Select value={statusFilter || "all"} onValueChange={handleFilterChange} data-testid="status-filter">
+              <SelectTrigger className="w-40" data-testid="status-filter-trigger">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="all" data-testid="status-filter-option-all">All Statuses</SelectItem>
                 {ALL_ORDER_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
+                  <SelectItem key={status} value={status} data-testid={`status-filter-option-${status.toLowerCase()}`}>
                     {getStatusText(status)}
                   </SelectItem>
                 ))}
@@ -196,14 +196,14 @@ export default function AdminOrdersPage() {
             </TableHeader>
             <TableBody>
               {orders.length === 0 ? (
-                <TableRow>
+                <TableRow data-testid="no-orders-row">
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No orders found
                   </TableCell>
                 </TableRow>
               ) : (
                 orders.map((order) => (
-                  <TableRow key={order.id}>
+                  <TableRow key={order.id} data-testid={`order-row-${order.id}`}>
                     <TableCell>
                       <div className="font-mono text-sm">{order.id.slice(0, 8)}...</div>
                     </TableCell>
@@ -233,7 +233,7 @@ export default function AdminOrdersPage() {
                     </TableCell>
                     <TableCell>
                       {order.shipmentId ? (
-                        <div className="text-sm">
+                        <div className="text-sm" data-testid={`shipment-info-${order.id}`}>
                           <span className="font-medium">{order.courier?.toUpperCase()}</span>
                           {order.trackingId && (
                             <div className="text-xs text-muted-foreground">
@@ -252,6 +252,7 @@ export default function AdminOrdersPage() {
                           variant="outline"
                           onClick={() => handleCreateShipment(order.id)}
                           disabled={isCreatingShipment === order.id}
+                          data-testid={`create-shipment-btn-${order.id}`}
                         >
                           {isCreatingShipment === order.id ? (
                             <RefreshCw className="h-3 w-3 animate-spin" />
@@ -266,6 +267,7 @@ export default function AdminOrdersPage() {
                           variant="destructive"
                           onClick={() => handleRetryShipment(order.id)}
                           disabled={isCreatingShipment === order.id}
+                          data-testid={`retry-shipment-btn-${order.id}`}
                         >
                           {isCreatingShipment === order.id ? (
                             <RefreshCw className="h-3 w-3 animate-spin" />
@@ -283,7 +285,7 @@ export default function AdminOrdersPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       {isStatusDisabled(order) ? (
-                        <span className="text-xs text-muted-foreground mr-2">
+                        <span className="text-xs text-muted-foreground mr-2" data-testid={`order-status-display-${order.id}`}>
                           {order.shipmentId ? "Auto-managed" : getStatusText(order.status)}
                         </span>
                       ) : (
@@ -291,13 +293,14 @@ export default function AdminOrdersPage() {
                           value={order.status}
                           onValueChange={(value) => handleStatusChange(order.id, value)}
                           disabled={isUpdating === order.id}
+                          data-testid={`order-status-select-${order.id}`}
                         >
-                          <SelectTrigger className="w-32">
+                          <SelectTrigger className="w-32" data-testid={`order-status-trigger-${order.id}`}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             {ALLOWED_ADMIN_STATUSES.map((status) => (
-                              <SelectItem key={status} value={status}>
+                              <SelectItem key={status} value={status} data-testid={`order-status-option-${order.id}-${status.toLowerCase()}`}>
                                 {getStatusText(status)}
                               </SelectItem>
                             ))}

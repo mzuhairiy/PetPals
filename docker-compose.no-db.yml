@@ -1,0 +1,23 @@
+version: "3.8"
+
+# Override file: removes the db service and its dependency.
+# Use when you already have PostgreSQL running on your host.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.no-db.yml up --build
+#
+# Make sure backend/.env.docker has DATABASE_URL pointing to your existing DB.
+# From inside a container, "localhost" refers to the container itself, not your host.
+# Use "host.docker.internal" to reach services on your host machine:
+#   DATABASE_URL="postgresql://postgres:password@host.docker.internal:5432/petpals?schema=public"
+
+services:
+  db:
+    # Disable the db service by overriding with an empty profile
+    profiles:
+      - disabled
+
+  backend:
+    depends_on: {}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

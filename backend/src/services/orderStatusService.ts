@@ -1,57 +1,11 @@
+import { PrismaClient, OrderStatus } from '@prisma/client'
+import { config } from '../config'
 import prisma from '../config/database'
-import { OrderStatus } from '@prisma/client'
 
-// Business order status values
-export type BusinessOrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+// Business order status type (extended from Prisma enum)
+type BusinessOrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
 
-// Biteship shipping status values
-export type ShippingStatus = 
-  | 'PENDING' 
-  | 'CONFIRMED' 
-  | 'ALLOCATED' 
-  | 'PICKED_UP' 
-  | 'IN_TRANSIT' 
-  | 'OUT_FOR_DELIVERY' 
-  | 'DELIVERED' 
-  | 'CANCELLED'
-
-// Valid admin-editable statuses (when no shipment exists)
-const ALLOWED_ADMIN_STATUSES: BusinessOrderStatus[] = ['PROCESSING', 'CANCELLED']
-
-// Status that should prevent backward transitions
-const IRREVERSIBLE_STATUSES: BusinessOrderStatus[] = ['SHIPPED', 'DELIVERED', 'CANCELLED']
-
-export class OrderStatusService {
-  /**
-   * Check if admin can manually change order status
-   */
-  static canAdminChangeStatus(orderId: string): boolean {
-    // This is a sync check - for actual implementation, pass the order
-    // We'll handle this in the controller
-    return true
-  }
-
-  /**
-   * Validate if status transition is allowed
-   */
-  static isValidTransition(currentStatus: BusinessOrderStatus, newStatus: BusinessOrderStatus): boolean {
-    // Don't allow going backwards from irreversible statuses
-    if (IRREVERSIBLE_STATUSES.includes(currentStatus)) {
-      return false
-    }
-    
-    // Allow specific transitions
-    const validTransitions: Record<BusinessOrderStatus, BusinessOrderStatus[]> = {
-      'PENDING': ['PROCESSING', 'CANCELLED'],
-      'PROCESSING': ['SHIPPED', 'CANCELLED'],
-      'SHIPPED': ['DELIVERED'], // Only forward to delivered
-      'DELIVERED': [], // Cannot change once delivered
-      'CANCELLED': []  // Cannot change once cancelled
-    }
-    
-    return validTransitions[currentStatus]?.includes(newStatus) ?? false
-  }
-
+class OrderStatusService {
   /**
    * Map shipping status from Biteship to business order status
    */
@@ -63,27 +17,45 @@ export class OrderStatusService {
       case 'PENDING':
       case 'CONFIRMED':
       case 'ALLOCATED':
+      case 'CREATED':
         // Shipment has been created and confirmed - now waiting for pickup
         // This is when admin has created the shipment
         return 'SHIPPED'
       
       case 'PICKED_UP':
+      case 'PICKUP':
         // Courier has picked up the package - also shipped
         return 'SHIPPED'
       
       case 'IN_TRANSIT':
+      case 'TRANSIT':
+      case 'ON_THE_WAY':
       case 'OUT_FOR_DELIVERY':
+      case 'ONDELIVERY':
         // Still in transit - keep as SHIPPED
         return 'SHIPPED'
       
       case 'DELIVERED':
+      case 'COMPLETED':
+      case 'SUCCESS':
+      case 'DONE':
+        // Package delivered successfully
         return 'DELIVERED'
       
       case 'CANCELLED':
+      case 'CANCELED':
+      case 'VOID':
+      case 'FAILED':
+      case 'RETURNED':
+      case 'RETURN':
         return 'CANCELLED'
       
+      case 'FAILED_DELIVERY':
+      case 'FAILED_DELIVERED':
+        // Failed delivery attempt - still shipped, but may need attention
+        return 'SHIPPED'
+      
       default:
-        console.log(`[OrderStatusService] Unknown shipping status: ${shippingStatus}, defaulting to SHIPPED`)
         // Default to SHIPPED for unknown shipping statuses (shipment was created)
         return 'SHIPPED'
     }
@@ -123,8 +95,6 @@ export class OrderStatusService {
       courierService?: string
     }
   ): Promise<{ success: boolean; orderStatus?: string; message: string }> {
-    console.log(`[OrderStatusService] Processing shipping status update for order ${orderId}: ${shippingStatus}`)
-
     try {
       // Get current order
       const order = await prisma.order.findUnique({
@@ -142,7 +112,6 @@ export class OrderStatusService {
 
       // Check if we should update
       if (!this.shouldUpdateOrderStatus(currentStatus, shippingStatus, newOrderStatus)) {
-        console.log(`[OrderStatusService] Skipping status update: current=${currentStatus}, new would be=${newOrderStatus}, shippingStatus=${shippingStatus}`)
         return { 
           success: true, 
           orderStatus: currentStatus,
@@ -175,56 +144,65 @@ export class OrderStatusService {
         data: updateData
       })
 
-      console.log(`[OrderStatusService] Order ${orderId} status updated: ${currentStatus} -> ${newOrderStatus}`)
-
       return { 
         success: true, 
         orderStatus: newOrderStatus,
-        message: 'Status updated successfully' 
+        message: `Order status updated from ${currentStatus} to ${newOrderStatus}` 
       }
     } catch (error) {
-      console.error('[OrderStatusService] Error updating status:', error)
-      return { success: false, message: 'Failed to update status' }
+      console.error(`[OrderStatusService] Error updating order status:`, error)
+      return { 
+        success: false, 
+        message: `Error updating order status: ${error}` 
+      }
     }
   }
 
   /**
-   * Check if admin can edit status for an order
+   * Check if admin can edit order status
    */
-  static async canAdminEditStatus(orderId: string): Promise<{
-    canEdit: boolean
-    reason?: string
-    allowedStatuses?: BusinessOrderStatus[]
-  }> {
+  static async canAdminEditStatus(orderId: string): Promise<{ canEdit: boolean; currentStatus: string; message: string; reason?: string }> {
     const order = await prisma.order.findUnique({
       where: { id: orderId }
     })
 
     if (!order) {
-      return { canEdit: false, reason: 'Order not found' }
+      return { canEdit: false, currentStatus: '', message: 'Order not found', reason: 'Order not found' }
     }
 
-    // If shipment exists, admin cannot edit
-    const orderAny = order as any
-    if (orderAny.shipmentId) {
+    const currentStatus = order.status as BusinessOrderStatus
+    
+    // Allow editing unless order is delivered or cancelled
+    if (currentStatus === 'DELIVERED' || currentStatus === 'CANCELLED') {
       return { 
         canEdit: false, 
-        reason: 'Shipment exists - status is managed automatically' 
-      }
-    }
-
-    // If already delivered or cancelled, cannot edit
-    if (order.status === 'DELIVERED' || order.status === 'CANCELLED') {
-      return { 
-        canEdit: false, 
-        reason: `Order is ${order.status.toLowerCase()}` 
+        currentStatus: currentStatus, 
+        message: `Cannot edit ${currentStatus.toLowerCase()} orders`,
+        reason: `Cannot edit ${currentStatus.toLowerCase()} orders`
       }
     }
 
     return { 
       canEdit: true, 
-      allowedStatuses: ALLOWED_ADMIN_STATUSES 
+      currentStatus: currentStatus, 
+      message: 'Order status can be edited' 
     }
+  }
+
+  /**
+   * Check if status transition is valid
+   */
+  static isValidTransition(currentStatus: BusinessOrderStatus, newStatus: BusinessOrderStatus): boolean {
+    const validTransitions: Record<BusinessOrderStatus, BusinessOrderStatus[]> = {
+      'PENDING': ['PROCESSING', 'CANCELLED'],
+      'PROCESSING': ['SHIPPED', 'CANCELLED'],
+      'SHIPPED': ['DELIVERED', 'CANCELLED'],
+      'DELIVERED': [],
+      'CANCELLED': []
+    }
+
+    const allowed = validTransitions[currentStatus] || []
+    return allowed.includes(newStatus)
   }
 
   /**

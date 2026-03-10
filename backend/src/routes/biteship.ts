@@ -1,7 +1,7 @@
 import { Router, Response } from 'express'
 import { authenticate } from '../middleware/auth'
 import { biteshipService } from '../services/biteship'
-import { OrderStatusService } from '../services/orderStatusService'
+import OrderStatusService from '../services/orderStatusService'
 import { Role, AuthRequest } from '../types'
 import prisma from '../config/database'
 import { asyncHandler } from '../utils/asyncHandler'
@@ -73,6 +73,66 @@ router.get('/status/:orderId', authenticate, asyncHandler(async (req: AuthReques
   })
 }))
 
+// Sync shipment status from Biteship API (admin only)
+// This can be used as fallback when webhooks don't work
+router.post('/sync/:orderId', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
+  const orderId = String(req.params.orderId)
+  
+  // Check if user is admin
+  if (req.user?.role !== Role.ADMIN) {
+    return res.status(403).json({ error: 'Only admins can sync shipment status' })
+  }
+  
+  const order = await prisma.order.findUnique({
+    where: { id: orderId }
+  })
+  
+  if (!order) {
+    return res.status(404).json({ error: 'Order not found' })
+  }
+  
+  const shipmentId = (order as any).shipmentId
+  if (!shipmentId) {
+    return res.status(400).json({ error: 'Order has no shipment' })
+  }
+  
+  // Fetch latest status from Biteship API
+  try {
+    const shipment = await biteshipService.getShipment(shipmentId)
+    
+    if (!shipment) {
+      return res.status(404).json({ error: 'Shipment not found in Biteship' })
+    }
+    
+    // Extract status from Biteship response
+    const shipmentAny = shipment as any
+    const shippingStatus = shipmentAny.status || shipmentAny.status_shipment || shipmentAny.order_status || ''
+    
+    console.log('[Biteship sync] Fetched status from API:', shippingStatus)
+    
+    // Update order status
+    const result = await OrderStatusService.handleShippingStatusUpdate(
+      orderId,
+      shippingStatus,
+      {
+        trackingId: shipment.tracking_number || shipment.booking_tracking_number || undefined,
+        courier: shipment.courier_code || undefined,
+        courierService: shipment.courier_service_code || undefined
+      }
+    )
+    
+    res.json({
+      success: result.success,
+      message: result.message,
+      orderStatus: result.orderStatus,
+      shippingStatus: shippingStatus
+    })
+  } catch (error) {
+    console.error('[Biteship sync] Error:', error)
+    res.status(500).json({ error: 'Failed to sync shipment status' })
+  }
+}))
+
 // Check if admin can edit order status (for admin panel)
 router.get('/can-edit/:orderId', authenticate, asyncHandler(async (req: AuthRequest, res: Response) => {
   // Only admins can check this
@@ -109,25 +169,48 @@ router.post('/webhook', asyncHandler(async (req: AuthRequest, res: Response) => 
   
   console.log('[Biteship] Webhook received:', rawBody)
   
-  // Validate webhook payload
-  if (!payload.order_id || !payload.status) {
-    console.warn('[Biteship] Invalid webhook payload - missing required fields')
+  // Validate webhook payload - support different field names and nested structures
+  const orderId = payload.order_id || payload.id || payload.shipment_id || payload.waybill_id || ''
+  
+  // Try to find status in various possible locations
+  let shippingStatus = ''
+  
+  // Direct status fields
+  if (payload.status) {
+    if (typeof payload.status === 'string') {
+      shippingStatus = payload.status
+    } else if (typeof payload.status === 'object') {
+      // Nested status object - Biteship might send { status: { code: 'delivered', ... } }
+      shippingStatus = payload.status.code || payload.status.name || payload.status.label || payload.status.status || ''
+    }
+  }
+  
+  // Try other possible field names
+  if (!shippingStatus) {
+    shippingStatus = payload.order_status || payload.shipment_status || payload.delivery_status || payload.tracking_status || ''
+  }
+  
+  // Extract other shipping info
+  const trackingNumber = payload.tracking_number || payload.tracking || payload.waybill_id || 
+                         (payload.tracking?.number) || (payload.waybill?.number) || ''
+  const courierCode = payload.courier_code || payload.courier || 
+                      (payload.courier?.code) || ''
+  const courierServiceCode = payload.courier_service_code || payload.courier_service || payload.service_code || 
+                              (payload.courier?.service) || ''
+  
+  console.log('[Biteship] Parsed shippingStatus:', shippingStatus, 'orderId:', orderId)
+  
+  if (!orderId || !shippingStatus) {
     return res.status(200).json({ ok: true })
   }
   
-  // Extract shipping status from webhook
-  const shippingStatus = payload.status
-  const trackingNumber = payload.tracking_number
-  const courierCode = payload.courier_code
-  const courierServiceCode = payload.courier_service_code
-  
   // Check for idempotency - if status hasn't changed, don't reprocess
   const order = await prisma.order.findFirst({
-    where: { shipmentId: payload.order_id } as any
+    where: { shipmentId: orderId } as any
   })
   
   if (!order) {
-    console.warn(`[Biteship] Order not found for shipment: ${payload.order_id}`)
+    console.warn(`[Biteship] Order not found for shipment: ${orderId}`)
     return res.status(200).json({ ok: true, message: 'Order not found' })
   }
   

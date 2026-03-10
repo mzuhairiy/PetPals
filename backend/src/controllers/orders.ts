@@ -4,7 +4,7 @@ import { AuthRequest, Role } from '../types'
 import { NotFoundError, UnauthorizedError, ConflictError, BadRequestError } from '../utils/errors'
 import { createOrderSchema } from '../validation'
 import { config } from '../config'
-import { OrderStatusService } from '../services/orderStatusService'
+import OrderStatusService from '../services/orderStatusService'
 
 export async function createOrder(req: AuthRequest, res: Response) {
   const { items, shippingAddress } = createOrderSchema.parse(req.body)

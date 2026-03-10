@@ -31,7 +31,7 @@ export async function createSnapTransaction(req: AuthRequest, res: Response) {
       return
     }
 
-    if (order.payment.transactionId) {
+    if (order.payment && order.payment.transactionId) {
     console.log("Snap token already exists, reusing:", order.payment.transactionId)
 
     return res.status(200).json({
@@ -133,9 +133,9 @@ export async function createSnapTransaction(req: AuthRequest, res: Response) {
         })
         // If successful, break out of retry loop
         break
-      } catch (error) {
+      } catch (error: unknown) {
         lastError = error as Error
-        console.error(`Midtrans attempt ${attempt} failed:`, error.message)
+        console.error(`Midtrans attempt ${attempt} failed:`, (error as Error).message)
         // Wait before retrying (exponential backoff)
         if (attempt < maxRetries) {
           await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
@@ -295,7 +295,7 @@ export async function handleWebhook(req: Request, res: Response) {
 
 // Get payment status
 export async function getPaymentStatus(req: AuthRequest, res: Response) {
-  const { orderId } = req.params
+  const orderId = String(req.params.orderId)
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -313,12 +313,14 @@ export async function getPaymentStatus(req: AuthRequest, res: Response) {
     return
   }
 
+  const orderWithPayment = order as any
+
   res.json({
     success: true,
     data: {
       orderId: order.id,
       status: order.status,
-      payment: order.payment
+      payment: orderWithPayment.payment
     }
   })
 }

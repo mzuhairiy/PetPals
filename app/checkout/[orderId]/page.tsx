@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
+import { useState, useEffect, use, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -25,6 +25,21 @@ interface OrderData {
 }
 
 export default function CheckoutPaymentPage({ params }: { params: Promise<{ orderId: string }> }) {
+  return (
+    <Suspense fallback={
+      <div className="container flex items-center justify-center min-h-screen px-4">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading payment...</p>
+        </div>
+      </div>
+    }>
+      <CheckoutPaymentContent params={params} />
+    </Suspense>
+  )
+}
+
+function CheckoutPaymentContent({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = use(params)
   const { token, isAuthenticated } = useAuth()
   const { clearCart } = useCart()

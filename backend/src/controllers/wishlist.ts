@@ -71,7 +71,7 @@ export async function addToWishlist(req: AuthRequest, res: Response) {
 
 export async function removeFromWishlist(req: AuthRequest, res: Response) {
   const userId = req.user!.userId
-  const { productId } = req.params
+  const productId = String(req.params.productId)
 
   // Check if item exists
   const existing = await prisma.wishlist.findUnique({
@@ -104,7 +104,7 @@ export async function removeFromWishlist(req: AuthRequest, res: Response) {
 
 export async function checkWishlist(req: AuthRequest, res: Response) {
   const userId = req.user!.userId
-  const { productId } = req.params
+  const productId = String(req.params.productId)
 
   const existing = await prisma.wishlist.findUnique({
     where: {

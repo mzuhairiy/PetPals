@@ -24,7 +24,7 @@ import { formatPrice } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 
 // Admin can only edit these statuses when no shipment exists
-const ALLOWED_ADMIN_STATUSES = ["PROCESSING", "CANCELLED"]
+const ALLOWED_ADMIN_STATUSES = ["PENDING", "PROCESSING", "CANCELLED"]
 
 // All order statuses for filtering
 const ALL_ORDER_STATUSES = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]
@@ -134,8 +134,8 @@ export default function AdminOrdersPage() {
   const isStatusDisabled = (order: AdminOrder) => {
     // Disable if shipment exists
     if (order.shipmentId) return true
-    // Disable if status is not PROCESSING
-    if (order.status !== 'PROCESSING') return true
+    // Disable if status is not PENDING or PROCESSING (can edit these to move forward)
+    if (!['PENDING', 'PROCESSING'].includes(order.status)) return true
     // Disable if currently updating
     if (isUpdating === order.id) return true
     return false

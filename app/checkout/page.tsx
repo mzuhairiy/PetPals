@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
@@ -45,6 +45,19 @@ const checkoutSchema = z.object({
 type CheckoutFormData = z.infer<typeof checkoutSchema>
 
 export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="container px-4 py-16 text-center">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+        <p className="mt-4 text-muted-foreground">Loading checkout...</p>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
+  )
+}
+
+function CheckoutContent() {
   const { cartItems } = useCart()
   const { token, isAuthenticated, user } = useAuth()
   const { toast } = useToast()

@@ -111,12 +111,12 @@ export class BiteshipService {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}))
+      const error = await response.json().catch(() => ({})) as any
       console.error('[Biteship] Failed to create shipment:', error)
       throw new Error(error.message || `Failed to create shipment: ${response.status}`)
     }
 
-    const result = await response.json()
+    const result = await response.json() as BiteshipOrderResponse
     console.log(`[Biteship] Shipment created successfully:`, result.id)
 
     return result
@@ -137,11 +137,11 @@ export class BiteshipService {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}))
+      const error = await response.json().catch(() => ({})) as any
       throw new Error(error.message || `Failed to get shipment: ${response.status}`)
     }
 
-    return response.json()
+    return await response.json() as BiteshipOrderResponse
   }
 
   /**
@@ -257,7 +257,7 @@ export class BiteshipService {
       const initialShippingStatus = shipmentAny.status || shipmentAny.status_shipment || shipmentAny.order_status || 'CONFIRMED'
       console.log(`[Biteship] Initial shipment status: '${initialShippingStatus}'`)
       
-      const { OrderStatusService } = await import('./orderStatusService')
+      const OrderStatusService = (await import('./orderStatusService')).default
       const initialOrderStatus = OrderStatusService.mapShippingToOrderStatus(initialShippingStatus)
       console.log(`[Biteship] Mapped to order status: ${initialOrderStatus}`)
 

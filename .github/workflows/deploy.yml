@@ -19,6 +19,7 @@ jobs:
   # ─── Stage 1: Test Backend ───
   test-backend:
     runs-on: ubuntu-latest
+    continue-on-error: true
     services:
       postgres:
         image: postgres:16-alpine

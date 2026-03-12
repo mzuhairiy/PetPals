@@ -4,3 +4,5 @@ dist
 .env
 .env.local
 .env.docker
+deploy/.env.staging
+deploy/.env.production

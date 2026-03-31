@@ -1,0 +1,330 @@
+import { Router, Request, Response } from 'express'
+import bcrypt from 'bcrypt'
+import prisma from '../config/database'
+import { config } from '../config'
+import { asyncHandler } from '../utils/asyncHandler'
+import { Category, Pet, Role } from '@prisma/client'
+
+const router = Router()
+
+// Convert USD to IDR (multiply by 16000)
+const toIDR = (usd: number) => Math.round(usd * 16000)
+
+// POST /api/seed - Seed the database (non-production only)
+router.post('/', asyncHandler(async (req: Request, res: Response) => {
+  // Block in production
+  if (config.nodeEnv === 'production') {
+    return res.status(403).json({
+      success: false,
+      error: { message: 'Seeding is not allowed in production' }
+    })
+  }
+
+  // Optional secret key for extra protection
+  const { secret } = req.body
+  if (secret !== 'petpals-seed-2024') {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid seed secret. Send { "secret": "petpals-seed-2024" }' }
+    })
+  }
+
+  const results: string[] = []
+
+  // Create admin user
+  const adminPassword = await bcrypt.hash('admin123', 10)
+  await prisma.user.upsert({
+    where: { email: 'admin@petpals.com' },
+    update: {},
+    create: {
+      email: 'admin@petpals.com',
+      password: adminPassword,
+      name: 'Admin User',
+      role: Role.ADMIN
+    }
+  })
+  results.push('Admin user created (admin@petpals.com / admin123)')
+
+  // Create customer user
+  const customerPassword = await bcrypt.hash('customer123', 10)
+  await prisma.user.upsert({
+    where: { email: 'customer@example.com' },
+    update: {},
+    create: {
+      email: 'customer@example.com',
+      password: customerPassword,
+      name: 'Test Customer',
+      role: Role.CUSTOMER
+    }
+  })
+  results.push('Customer user created (customer@example.com / customer123)')
+
+  // Clear existing product data (respecting foreign keys)
+  await prisma.orderItem.deleteMany()
+  await prisma.order.deleteMany()
+  await prisma.product.deleteMany()
+  results.push('Cleared existing orders and products')
+
+  // Create products with IDR prices
+  const products = [
+    {
+      name: 'Premium Dry Cat Food',
+      slug: 'premium-dry-cat-food',
+      description: 'High-quality dry food for adult cats with balanced nutrition and great taste.',
+      price: toIDR(24.99),
+      image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=600&auto=format&fit=crop',
+      category: Category.FOOD,
+      pet: Pet.CAT,
+      rating: 4.5,
+      reviewCount: 128,
+      isNew: false,
+      featured: true,
+      stock: 50,
+      tags: ['food', 'nutrition', 'adult cats']
+    },
+    {
+      name: 'Interactive Cat Toy',
+      slug: 'interactive-cat-toy',
+      description: 'Engaging toy that stimulates your cat\'s hunting instincts and provides hours of entertainment.',
+      price: toIDR(12.99),
+      originalPrice: toIDR(16.99),
+      image: 'https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?q=80&w=600&auto=format&fit=crop',
+      category: Category.TOYS,
+      pet: Pet.CAT,
+      rating: 4.8,
+      reviewCount: 95,
+      isNew: true,
+      discount: 20,
+      featured: true,
+      stock: 35,
+      tags: ['toys', 'interactive', 'entertainment']
+    },
+    {
+      name: 'Premium Dog Kibble',
+      slug: 'premium-dog-kibble',
+      description: 'Complete and balanced nutrition for adult dogs of all breeds.',
+      price: toIDR(34.99),
+      image: 'https://images.unsplash.com/photo-1743269489028-2c7e359423e3?q=80&w=600&auto=format&fit=crop',
+      category: Category.FOOD,
+      pet: Pet.DOG,
+      rating: 4.7,
+      reviewCount: 203,
+      featured: true,
+      stock: 45,
+      tags: ['food', 'nutrition', 'adult dogs']
+    },
+    {
+      name: 'Durable Dog Chew Toy',
+      slug: 'durable-dog-chew-toy',
+      description: 'Long-lasting chew toy designed for aggressive chewers.',
+      price: toIDR(18.99),
+      originalPrice: toIDR(22.99),
+      image: 'https://images.unsplash.com/photo-1575425186775-b8de9a427e67?q=80&w=600&auto=format&fit=crop',
+      category: Category.TOYS,
+      pet: Pet.DOG,
+      rating: 4.6,
+      reviewCount: 167,
+      discount: 15,
+      featured: true,
+      stock: 30,
+      tags: ['toys', 'durable', 'chew']
+    },
+    {
+      name: 'Cat Immune Support Supplements',
+      slug: 'cat-immune-support-supplements',
+      description: 'Daily supplements to boost your cat\'s immune system and overall health.',
+      price: toIDR(29.99),
+      image: 'https://images.unsplash.com/photo-1606214174585-fe31582dc6ee?q=80&w=600&auto=format&fit=crop',
+      category: Category.SUPPLEMENTS,
+      pet: Pet.CAT,
+      rating: 4.3,
+      reviewCount: 78,
+      isNew: true,
+      featured: true,
+      stock: 25,
+      tags: ['supplements', 'health', 'immune system']
+    },
+    {
+      name: 'Dog Joint Health Supplements',
+      slug: 'dog-joint-health-supplements',
+      description: 'Support your dog\'s joint health and mobility with these tasty chewable tablets.',
+      price: toIDR(32.99),
+      image: 'https://images.unsplash.com/photo-1582798358481-d199fb7347bb?q=80&w=600&auto=format&fit=crop',
+      category: Category.SUPPLEMENTS,
+      pet: Pet.DOG,
+      rating: 4.5,
+      reviewCount: 112,
+      featured: true,
+      stock: 40,
+      tags: ['supplements', 'joint health', 'mobility']
+    },
+    {
+      name: 'Catnip Mice Toys (3-Pack)',
+      slug: 'catnip-mice-toys-3-pack',
+      description: 'Set of three catnip-filled mice toys that cats love to chase and pounce on.',
+      price: toIDR(9.99),
+      image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?q=80&w=600&auto=format&fit=crop',
+      category: Category.TOYS,
+      pet: Pet.CAT,
+      rating: 4.2,
+      reviewCount: 63,
+      featured: false,
+      stock: 55,
+      tags: ['toys', 'catnip', 'play']
+    },
+    {
+      name: 'Dog Tennis Ball Launcher',
+      slug: 'dog-tennis-ball-launcher',
+      description: 'Interactive toy that launches tennis balls for your dog to fetch.',
+      price: toIDR(24.99),
+      originalPrice: toIDR(29.99),
+      image: 'https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?q=80&w=600&auto=format&fit=crop',
+      category: Category.TOYS,
+      pet: Pet.DOG,
+      rating: 4.4,
+      reviewCount: 89,
+      discount: 15,
+      featured: true,
+      stock: 20,
+      tags: ['toys', 'interactive', 'fetch']
+    },
+    {
+      name: 'Wet Cat Food Variety Pack',
+      slug: 'wet-cat-food-variety-pack',
+      description: 'Assorted flavors of premium wet food that cats love.',
+      price: toIDR(18.99),
+      image: 'https://images.unsplash.com/photo-1600456899121-68eda5705257?q=80&w=600&auto=format&fit=crop',
+      category: Category.FOOD,
+      pet: Pet.CAT,
+      rating: 4.6,
+      reviewCount: 142,
+      featured: false,
+      stock: 60,
+      tags: ['food', 'wet food', 'variety']
+    },
+    {
+      name: 'Dog Dental Chews',
+      slug: 'dog-dental-chews',
+      description: 'Tasty treats that help clean your dog\'s teeth and freshen breath.',
+      price: toIDR(14.99),
+      image: 'https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?q=80&w=600&auto=format&fit=crop',
+      category: Category.FOOD,
+      pet: Pet.DOG,
+      rating: 4.3,
+      reviewCount: 76,
+      featured: false,
+      stock: 45,
+      tags: ['dental care', 'treats', 'oral health']
+    },
+    {
+      name: 'Cat Scratching Post',
+      slug: 'cat-scratching-post',
+      description: 'Durable sisal scratching post with a plush top perch for lounging.',
+      price: toIDR(39.99),
+      originalPrice: toIDR(49.99),
+      image: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?q=80&w=600&auto=format&fit=crop',
+      category: Category.TOYS,
+      pet: Pet.CAT,
+      rating: 4.7,
+      reviewCount: 118,
+      discount: 20,
+      featured: true,
+      stock: 13,
+      tags: ['furniture', 'scratching', 'activity']
+    },
+    {
+      name: 'Dog Anxiety Calming Vest',
+      slug: 'dog-anxiety-calming-vest',
+      description: 'Gentle pressure vest that helps reduce anxiety during thunderstorms or travel.',
+      price: toIDR(44.99),
+      image: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=600&auto=format&fit=crop',
+      category: Category.SUPPLEMENTS,
+      pet: Pet.DOG,
+      rating: 4.1,
+      reviewCount: 52,
+      isNew: true,
+      featured: false,
+      stock: 25,
+      tags: ['anxiety', 'calming', 'travel']
+    },
+    {
+      name: 'Cat Hairball Control Treats',
+      slug: 'cat-hairball-control-treats',
+      description: 'Tasty treats that help reduce hairballs and support digestive health.',
+      price: toIDR(11.99),
+      image: 'https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?q=80&w=600&auto=format&fit=crop',
+      category: Category.SUPPLEMENTS,
+      pet: Pet.CAT,
+      rating: 4.4,
+      reviewCount: 87,
+      featured: false,
+      stock: 40,
+      tags: ['hairball', 'treats', 'digestive health']
+    },
+    {
+      name: 'Dog Training Treats Pouch',
+      slug: 'dog-training-treats-pouch',
+      description: 'Convenient pouch for carrying training treats during walks and training sessions.',
+      price: toIDR(16.99),
+      image: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=600&auto=format&fit=crop',
+      category: Category.TOYS,
+      pet: Pet.DOG,
+      rating: 4.2,
+      reviewCount: 64,
+      featured: false,
+      stock: 30,
+      tags: ['training', 'accessories', 'treats']
+    },
+    {
+      name: 'Cat Water Fountain',
+      slug: 'cat-water-fountain',
+      description: 'Flowing water fountain that encourages cats to drink more water.',
+      price: toIDR(29.99),
+      originalPrice: toIDR(34.99),
+      image: 'https://images.unsplash.com/photo-1516750105099-4b8a83e217ee?q=80&w=600&auto=format&fit=crop',
+      category: Category.FOOD,
+      pet: Pet.CAT,
+      rating: 4.5,
+      reviewCount: 103,
+      discount: 15,
+      featured: true,
+      stock: 20,
+      tags: ['water', 'hydration', 'fountain']
+    },
+    {
+      name: 'Dog Probiotic Supplements',
+      slug: 'dog-probiotic-supplements',
+      description: 'Daily probiotics to support your dog\'s digestive and immune health.',
+      price: toIDR(27.99),
+      image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=600&auto=format&fit=crop',
+      category: Category.SUPPLEMENTS,
+      pet: Pet.DOG,
+      rating: 4.6,
+      reviewCount: 91,
+      isNew: true,
+      featured: false,
+      stock: 35,
+      tags: ['supplements', 'digestive health', 'probiotics']
+    }
+  ]
+
+  for (const product of products) {
+    await prisma.product.create({ data: product })
+  }
+  results.push(`Created ${products.length} products`)
+
+  // Show sample prices
+  const sampleProducts = await prisma.product.findMany({ take: 3 })
+  const samples = sampleProducts.map(p => `${p.name}: Rp ${p.price.toLocaleString()}`)
+
+  res.json({
+    success: true,
+    data: {
+      actions: results,
+      samplePrices: samples,
+      totalProducts: products.length
+    }
+  })
+}))
+
+export default router

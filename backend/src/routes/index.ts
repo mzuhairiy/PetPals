@@ -5,6 +5,7 @@ import orderRoutes from './orders'
 import wishlistRoutes from './wishlist'
 import paymentRoutes from './payments'
 import biteshipRoutes from './biteship'
+import seedRoutes from './seed'
 
 const router = Router()
 
@@ -14,5 +15,6 @@ router.use('/orders', orderRoutes)
 router.use('/wishlist', wishlistRoutes)
 router.use('/payments', paymentRoutes)
 router.use('/shipments', biteshipRoutes)
+router.use('/seed', seedRoutes)
 
 export default router

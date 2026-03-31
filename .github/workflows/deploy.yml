@@ -202,6 +202,13 @@ jobs:
               -H "Access-Control-Request-Headers: Content-Type" \
               -D - -o /dev/null || echo "CORS preflight test failed"
 
+            # Seed database (staging only, idempotent)
+            echo ""
+            echo "=== Seeding Database ==="
+            curl -sf -X POST http://localhost:5100/api/seed \
+              -H "Content-Type: application/json" \
+              -d '{"secret":"petpals-seed-2024"}' || echo "Seed failed or already seeded"
+
             # Clean up old images
             docker image prune -f
 

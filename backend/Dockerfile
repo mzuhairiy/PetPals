@@ -1,8 +1,8 @@
 # ── Stage 1: Build ──
 FROM node:20-alpine AS builder
 
-# bcrypt requires native compilation tools
-RUN apk add --no-cache python3 make g++
+# bcrypt requires native compilation tools, openssl for Prisma
+RUN apk add --no-cache python3 make g++ openssl
 
 WORKDIR /app
 
@@ -28,7 +28,8 @@ RUN npm run build
 FROM node:20-alpine AS runner
 
 # bcrypt requires native compilation tools for npm ci
-RUN apk add --no-cache python3 make g++
+# openssl is required by Prisma engines at runtime
+RUN apk add --no-cache python3 make g++ openssl
 
 WORKDIR /app
 

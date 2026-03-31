@@ -17,7 +17,9 @@ export const config = {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d'
   },
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (process.env.FRONTEND_URL || 'http://localhost:3000')
+      .split(',')
+      .map(url => url.trim()),
     credentials: true
   },
   midtrans: {

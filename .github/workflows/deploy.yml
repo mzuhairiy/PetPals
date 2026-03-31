@@ -83,7 +83,7 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: https://staging.petpals-demo.shop
-          NEXT_PUBLIC_MIDTRANS_CLIENT_KEY: placeholder-for-build-check
+          NEXT_PUBLIC_MIDTRANS_CLIENT_KEY: Mid-client-TzQ-2Xg8RhB1DUAX
 
   # ─── Stage 2: Build & Push Docker Images ───
   containerize:
@@ -122,7 +122,7 @@ jobs:
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
           build-args: |
             NEXT_PUBLIC_API_URL=https://staging.petpals-demo.shop
-            NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=${{ secrets.MIDTRANS_CLIENT_KEY_SANDBOX }}
+            NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=Mid-client-TzQ-2Xg8RhB1DUAX
 
   # ─── Stage 3: Deploy to Staging ───
   deploy-staging:

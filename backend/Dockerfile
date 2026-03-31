@@ -73,9 +73,6 @@ npx prisma migrate deploy 2>&1\n\
 echo "Migrations complete."\n\
 echo ""\n\
 echo "Starting Node.js server..."\n\
-echo "Contents of dist/:"\n\
-ls -la dist/ 2>&1 || true\n\
-ls -la dist/src/ 2>&1 || true\n\
 exec node dist/src/server.js\n' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 CMD ["/app/entrypoint.sh"]

@@ -15,7 +15,7 @@ COPY prisma ./prisma/
 # Install all dependencies (including devDependencies for build)
 RUN npm ci
 
-# Generate Prisma client (uses prisma version from package-lock.json)
+# Generate Prisma client
 RUN npx prisma generate
 
 # Copy source code
@@ -34,17 +34,16 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy dependency manifests and install production deps only
+# Copy dependency manifests
 COPY package.json package-lock.json ./
 COPY prisma ./prisma/
 
-# Install production deps. prisma is a devDependency so it won't be installed,
-# but @prisma/client needs the generated client. We copy it from the builder.
+# Install production dependencies only
+# (@prisma/client is now in dependencies, not devDependencies)
 RUN npm ci --omit=dev
 
-# Copy the generated Prisma client from the builder stage
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+# Generate Prisma client in production stage
+RUN npx prisma generate
 
 # The compiled output from tsc uses CommonJS (require/module.exports),
 # but package.json has "type": "module" which tells Node to expect ESM.
@@ -59,8 +58,20 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 5000
 
-# Run database migrations then start the server.
-# We copy prisma CLI from builder for migrate deploy.
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+# Create an entrypoint script with logging for debugging
+RUN printf '#!/bin/sh\n\
+set -e\n\
+echo "=== PetPals Backend Starting ==="\n\
+echo "NODE_ENV: $NODE_ENV"\n\
+echo "PORT: $PORT"\n\
+echo "Database: $(echo $DATABASE_URL | sed '\''s/:[^@]*@/:***@/g'\'')"\n\
+echo "FRONTEND_URL: $FRONTEND_URL"\n\
+echo ""\n\
+echo "Running Prisma migrations..."\n\
+npx prisma migrate deploy 2>&1\n\
+echo "Migrations complete."\n\
+echo ""\n\
+echo "Starting Node.js server..."\n\
+exec node dist/server.js\n' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
+CMD ["/app/entrypoint.sh"]

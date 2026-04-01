@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { fetchAllOrders, updateOrderStatus, createShipment, retryShipment, checkCanEditStatus, AdminOrder } from "@/lib/api"
+import { fetchAllOrders, updateOrderStatus, createShipment, retryShipment, syncShipmentStatus, checkCanEditStatus, AdminOrder } from "@/lib/api"
 import { formatPrice } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -36,6 +36,7 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("")
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
   const [isCreatingShipment, setIsCreatingShipment] = useState<string | null>(null)
+  const [isSyncing, setIsSyncing] = useState<string | null>(null)
   // Track which orders have editable status
   const [editableOrders, setEditableOrders] = useState<Set<string>>(new Set())
 
@@ -102,6 +103,19 @@ export default function AdminOrdersPage() {
       toast({ title: "Error", description: "Failed to retry shipment", variant: "destructive" })
     } finally {
       setIsCreatingShipment(null)
+    }
+  }
+
+  const handleSyncStatus = async (orderId: string) => {
+    setIsSyncing(orderId)
+    try {
+      const result = await syncShipmentStatus(orderId)
+      toast({ title: "Status synced", description: result.message || `Order status: ${result.orderStatus}` })
+      loadOrders()
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to sync shipment status", variant: "destructive" })
+    } finally {
+      setIsSyncing(null)
     }
   }
 
@@ -240,11 +254,26 @@ export default function AdminOrdersPage() {
                               {order.trackingId}
                             </div>
                           )}
-                          {order.shippingStatus && (
-                            <span className="text-xs text-muted-foreground">
-                              {formatShippingStatus(order.shippingStatus)}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1 mt-0.5">
+                            {order.shippingStatus && (
+                              <span className="text-xs text-muted-foreground">
+                                {formatShippingStatus(order.shippingStatus)}
+                              </span>
+                            )}
+                            {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-5 w-5 p-0"
+                                onClick={() => handleSyncStatus(order.id)}
+                                disabled={isSyncing === order.id}
+                                title="Sync status from Biteship"
+                                data-testid={`sync-status-btn-${order.id}`}
+                              >
+                                <RefreshCw className={`h-3 w-3 ${isSyncing === order.id ? "animate-spin" : ""}`} />
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       ) : order.status === 'PROCESSING' ? (
                         <Button

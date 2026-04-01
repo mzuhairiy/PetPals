@@ -417,6 +417,19 @@ export async function getShipmentStatus(orderId: string): Promise<ShipmentInfo> 
   return result.data
 }
 
+export async function syncShipmentStatus(orderId: string): Promise<any> {
+  const response = await authFetch(`${API_URL}/api/shipments/sync/${orderId}`, {
+    method: 'POST'
+  })
+  
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to sync shipment status' }))
+    throw new Error(error.error || 'Failed to sync shipment status')
+  }
+  
+  return response.json()
+}
+
 export interface CanEditStatusResult {
   canEdit: boolean
   reason?: string

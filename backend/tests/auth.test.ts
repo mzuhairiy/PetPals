@@ -13,13 +13,17 @@ app.use(notFoundHandler)
 app.use(errorHandler)
 
 describe('Auth Endpoints', () => {
+  afterEach(async () => {
+    await prisma.user.deleteMany()
+  })
+
   describe('POST /api/auth/register', () => {
     it('should register a new user', async () => {
       const response = await request(app)
         .post('/api/auth/register')
         .send({
           email: 'test@example.com',
-          password: 'password123',
+          password: 'Password1!',
           name: 'Test User'
         })
 
@@ -30,20 +34,22 @@ describe('Auth Endpoints', () => {
     })
 
     it('should return 409 for duplicate email', async () => {
-      await prisma.user.create({
-        data: {
+      // Create user first
+      await request(app)
+        .post('/api/auth/register')
+        .send({
           email: 'existing@example.com',
-          password: 'hashedpassword',
+          password: 'Password1!',
           name: 'Existing User'
-        }
-      })
+        })
 
+      // Try to register again with same email
       const response = await request(app)
         .post('/api/auth/register')
         .send({
           email: 'existing@example.com',
-          password: 'password123',
-          name: 'Test User'
+          password: 'Password1!',
+          name: 'Another User'
         })
 
       expect(response.status).toBe(409)
@@ -55,7 +61,19 @@ describe('Auth Endpoints', () => {
         .post('/api/auth/register')
         .send({
           email: 'invalid-email',
-          password: 'password123',
+          password: 'Password1!',
+          name: 'Test User'
+        })
+
+      expect(response.status).toBe(422)
+    })
+
+    it('should return 422 for weak password', async () => {
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({
+          email: 'test@example.com',
+          password: 'short',
           name: 'Test User'
         })
 
@@ -65,36 +83,55 @@ describe('Auth Endpoints', () => {
 
   describe('POST /api/auth/login', () => {
     it('should login with valid credentials', async () => {
-      const bcrypt = await import('bcrypt')
-      const hashedPassword = await bcrypt.hash('password123', 10)
-
-      await prisma.user.create({
-        data: {
+      // Register first
+      await request(app)
+        .post('/api/auth/register')
+        .send({
           email: 'login@example.com',
-          password: hashedPassword,
+          password: 'Password1!',
           name: 'Login User'
-        }
-      })
+        })
 
+      // Then login
       const response = await request(app)
         .post('/api/auth/login')
         .send({
           email: 'login@example.com',
-          password: 'password123'
+          password: 'Password1!'
         })
 
       expect(response.status).toBe(200)
       expect(response.body.success).toBe(true)
       expect(response.body.data).toHaveProperty('token')
-      expect(response.body.data.user).toHaveProperty('email', 'login@example.com')
+      expect(response.body.data.user.email).toBe('login@example.com')
     })
 
-    it('should return 401 for invalid credentials', async () => {
+    it('should return 401 for wrong password', async () => {
+      // Register first
+      await request(app)
+        .post('/api/auth/register')
+        .send({
+          email: 'user@example.com',
+          password: 'Password1!',
+          name: 'User'
+        })
+
       const response = await request(app)
         .post('/api/auth/login')
         .send({
-          email: 'nonexistent@example.com',
-          password: 'wrongpassword'
+          email: 'user@example.com',
+          password: 'WrongPassword1!'
+        })
+
+      expect(response.status).toBe(401)
+    })
+
+    it('should return 401 for non-existent user', async () => {
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: 'nobody@example.com',
+          password: 'Password1!'
         })
 
       expect(response.status).toBe(401)

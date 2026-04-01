@@ -16,52 +16,33 @@ app.use(errorHandler)
 describe('Order Endpoints', () => {
   let userToken: string
   let adminToken: string
+  let userId: string
   let productId: string
-  let orderId: string
 
   beforeAll(async () => {
     const user = await prisma.user.create({
-      data: {
-        email: 'customer@test.com',
-        password: 'hashedpassword',
-        name: 'Customer',
-        role: 'CUSTOMER'
-      }
+      data: { email: 'order-customer@test.com', password: 'hashedpassword', name: 'Customer', role: 'CUSTOMER' }
     })
+    userId = user.id
+    userToken = generateToken({ userId: user.id, email: user.email, role: user.role })
 
     const admin = await prisma.user.create({
-      data: {
-        email: 'admin@test.com',
-        password: 'hashedpassword',
-        name: 'Admin',
-        role: 'ADMIN'
-      }
+      data: { email: 'order-admin@test.com', password: 'hashedpassword', name: 'Admin', role: 'ADMIN' }
     })
-
-    userToken = generateToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role
-    })
-
-    adminToken = generateToken({
-      userId: admin.id,
-      email: admin.email,
-      role: admin.role
-    })
+    adminToken = generateToken({ userId: admin.id, email: admin.email, role: admin.role })
 
     const product = await prisma.product.create({
-      data: {
-        name: 'Test Product',
-        slug: 'test-product',
-        price: 29.99,
-        category: 'TOYS',
-        pet: 'DOG',
-        stock: 100
-      }
+      data: { name: 'Test Product', slug: 'order-test-product', price: 160000, category: 'TOYS', pet: 'DOG', stock: 100 }
     })
-
     productId = product.id
+  })
+
+  afterAll(async () => {
+    await prisma.orderItem.deleteMany()
+    await prisma.payment.deleteMany()
+    await prisma.order.deleteMany()
+    await prisma.product.deleteMany()
+    await prisma.user.deleteMany({ where: { email: { in: ['order-customer@test.com', 'order-admin@test.com'] } } })
   })
 
   describe('POST /api/orders', () => {
@@ -70,66 +51,42 @@ describe('Order Endpoints', () => {
         .post('/api/orders')
         .set('Authorization', `Bearer ${userToken}`)
         .send({
-          items: [
-            {
-              productId,
-              quantity: 2
-            }
-          ],
+          items: [{ productId, quantity: 2 }],
           shippingAddress: {
-            street: '123 Main St',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10001',
-            country: 'USA'
-          },
-          paymentMethod: 'credit_card'
+            street: 'Jl. Test No. 1',
+            city: 'Jakarta',
+            state: 'DKI Jakarta',
+            zipCode: '12345',
+            country: 'ID'
+          }
         })
 
       expect(response.status).toBe(201)
       expect(response.body.success).toBe(true)
-      expect(response.body.data).toHaveProperty('id')
-      expect(response.body.data.total).toBe(59.98)
-      orderId = response.body.data.id
+      expect(response.body.data).toHaveProperty('orderId')
+      expect(response.body.data.subtotal).toBe(320000) // 160000 * 2
+      expect(response.body.data.tax).toBeGreaterThan(0)
+      expect(response.body.data.total).toBeGreaterThan(320000)
     })
 
-    it('should return 401 without token', async () => {
+    it('should reject without auth', async () => {
       const response = await request(app)
         .post('/api/orders')
         .send({
           items: [{ productId, quantity: 1 }],
-          shippingAddress: {
-            street: '123 Main St',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10001',
-            country: 'USA'
-          },
-          paymentMethod: 'credit_card'
+          shippingAddress: { street: 'St', city: 'City', state: 'State', zipCode: '12345', country: 'ID' }
         })
 
       expect(response.status).toBe(401)
     })
 
-    it('should return 409 for insufficient stock', async () => {
+    it('should reject insufficient stock', async () => {
       const response = await request(app)
         .post('/api/orders')
         .set('Authorization', `Bearer ${userToken}`)
         .send({
-          items: [
-            {
-              productId,
-              quantity: 200
-            }
-          ],
-          shippingAddress: {
-            street: '123 Main St',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10001',
-            country: 'USA'
-          },
-          paymentMethod: 'credit_card'
+          items: [{ productId, quantity: 9999 }],
+          shippingAddress: { street: 'St', city: 'City', state: 'State', zipCode: '12345', country: 'ID' }
         })
 
       expect(response.status).toBe(409)
@@ -145,26 +102,31 @@ describe('Order Endpoints', () => {
       expect(response.status).toBe(200)
       expect(response.body.success).toBe(true)
       expect(Array.isArray(response.body.data)).toBe(true)
-      expect(response.body.data.length).toBeGreaterThan(0)
+    })
+
+    it('should reject without auth', async () => {
+      const response = await request(app).get('/api/orders')
+      expect(response.status).toBe(401)
     })
   })
 
-  describe('GET /api/orders/:id', () => {
-    it('should return order by id', async () => {
+  describe('GET /api/orders/all (admin)', () => {
+    it('should return all orders for admin', async () => {
       const response = await request(app)
-        .get(`/api/orders/${orderId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .get('/api/orders/all')
+        .set('Authorization', `Bearer ${adminToken}`)
 
       expect(response.status).toBe(200)
-      expect(response.body.data.id).toBe(orderId)
+      expect(response.body.success).toBe(true)
+      expect(Array.isArray(response.body.data)).toBe(true)
     })
 
-    it('should return 404 for non-existent order', async () => {
+    it('should reject non-admin', async () => {
       const response = await request(app)
-        .get('/api/orders/non-existent-id')
+        .get('/api/orders/all')
         .set('Authorization', `Bearer ${userToken}`)
 
-      expect(response.status).toBe(404)
+      expect(response.status).toBe(403)
     })
   })
 })

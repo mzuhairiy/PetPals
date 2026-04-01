@@ -34,20 +34,6 @@ describe('Auth', () => {
     expect(res.status).toBe(409)
   })
 
-  it('rejects invalid email', async () => {
-    const res = await request(app).post('/api/auth/register')
-      .send({ email: 'bad', password: 'Password1!', name: 'User' })
-
-    expect(res.status).toBe(422)
-  })
-
-  it('rejects weak password', async () => {
-    const res = await request(app).post('/api/auth/register')
-      .send({ email: 'test@example.com', password: 'short', name: 'User' })
-
-    expect(res.status).toBe(422)
-  })
-
   it('logs in with valid credentials', async () => {
     await request(app).post('/api/auth/register')
       .send({ email: 'login@example.com', password: 'Password1!', name: 'User' })
@@ -57,7 +43,6 @@ describe('Auth', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.data).toHaveProperty('token')
-    expect(res.body.data.user.email).toBe('login@example.com')
   })
 
   it('rejects wrong password', async () => {

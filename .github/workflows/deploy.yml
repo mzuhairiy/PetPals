@@ -218,6 +218,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_production == 'true'
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
 

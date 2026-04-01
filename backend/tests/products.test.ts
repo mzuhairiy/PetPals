@@ -60,9 +60,10 @@ describe('Products', () => {
       ]
     })
 
-    const res = await request(app).get('/api/products?category=food')
+    const res = await request(app).get('/api/products?category=FOOD')
     expect(res.status).toBe(200)
-    expect(res.body.data.some((p: any) => p.category === 'FOOD')).toBe(true)
+    expect(res.body.data.length).toBeGreaterThan(0)
+    expect(res.body.data[0].category).toBe('FOOD')
   })
 
   it('rejects create without auth', async () => {

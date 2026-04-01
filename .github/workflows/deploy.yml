@@ -251,13 +251,13 @@ jobs:
             NEXT_PUBLIC_API_URL=https://petpals-demo.shop
             NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=${{ secrets.MIDTRANS_CLIENT_KEY }}
 
-      - name: Copy compose file to VPS
+      - name: Copy deploy files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "deploy/docker-compose.production.yml"
+          source: "deploy/docker-compose.production.yml,deploy/nginx/petpals-production"
           target: "/opt/petpals/production/"
           strip_components: 1
 
@@ -272,6 +272,14 @@ jobs:
 
             # Rename compose file
             mv -f docker-compose.production.yml docker-compose.yml 2>/dev/null || true
+
+            # Update Nginx config if changed
+            if [ -f nginx/petpals-production ]; then
+              sudo cp nginx/petpals-production /etc/nginx/sites-available/petpals-production
+              sudo ln -sf /etc/nginx/sites-available/petpals-production /etc/nginx/sites-enabled/petpals-production
+              sudo nginx -t && sudo systemctl reload nginx
+              echo "Nginx config updated and reloaded"
+            fi
 
             # Write .env file from secrets
             cat > .env << 'ENVEOF'
@@ -300,7 +308,18 @@ jobs:
             # Wait for backend to be healthy
             echo "Waiting for backend to start..."
             sleep 15
+
+            # Verify health
+            echo "=== Health Check ==="
             curl -sf http://localhost:5200/health || echo "Health check failed - backend may still be starting"
+
+            echo ""
+            echo "=== CORS Test (preflight) ==="
+            curl -sf -X OPTIONS http://localhost:5200/api/auth/login \
+              -H "Origin: https://petpals-demo.shop" \
+              -H "Access-Control-Request-Method: POST" \
+              -H "Access-Control-Request-Headers: Content-Type" \
+              -D - -o /dev/null || echo "CORS preflight test failed"
 
             # Clean up old images
             docker image prune -f

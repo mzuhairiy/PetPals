@@ -231,6 +231,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build & push backend image (production)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:production
+
       - name: Build & push frontend image (production URLs)
         uses: docker/build-push-action@v5
         with:

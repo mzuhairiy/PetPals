@@ -24,39 +24,58 @@ describe('Auth', () => {
     expect(res.body.data.email).toBe('test@example.com')
   })
 
-  it('rejects duplicate email', async () => {
-    await request(app).post('/api/auth/register')
-      .send({ email: 'dup@example.com', password: 'Password1!', name: 'User' })
+  it('rejects duplicate email on same request', async () => {
+    const email = 'dup@example.com'
+    
+    // First registration
+    const res1 = await request(app)
+      .post('/api/auth/register')
+      .send({ email, password: 'Password1!', name: 'User1' })
+    expect(res1.status).toBe(201)
 
-    const res = await request(app).post('/api/auth/register')
-      .send({ email: 'dup@example.com', password: 'Password1!', name: 'User2' })
-
-    expect(res.status).toBe(409)
+    // Second registration with same email
+    const res2 = await request(app)
+      .post('/api/auth/register')
+      .send({ email, password: 'Password1!', name: 'User2' })
+    expect(res2.status).toBe(409)
   })
 
   it('logs in with valid credentials', async () => {
-    await request(app).post('/api/auth/register')
-      .send({ email: 'login@example.com', password: 'Password1!', name: 'User' })
+    const email = 'login@example.com'
+    
+    // Register first
+    await request(app)
+      .post('/api/auth/register')
+      .send({ email, password: 'Password1!', name: 'User' })
 
-    const res = await request(app).post('/api/auth/login')
-      .send({ email: 'login@example.com', password: 'Password1!' })
+    // Then login
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email, password: 'Password1!' })
 
     expect(res.status).toBe(200)
     expect(res.body.data).toHaveProperty('token')
   })
 
   it('rejects wrong password', async () => {
-    await request(app).post('/api/auth/register')
-      .send({ email: 'user@example.com', password: 'Password1!', name: 'User' })
+    const email = 'user@example.com'
+    
+    // Register first
+    await request(app)
+      .post('/api/auth/register')
+      .send({ email, password: 'Password1!', name: 'User' })
 
-    const res = await request(app).post('/api/auth/login')
-      .send({ email: 'user@example.com', password: 'Wrong1!' })
+    // Try login with wrong password
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email, password: 'Wrong1!' })
 
     expect(res.status).toBe(401)
   })
 
   it('rejects non-existent user login', async () => {
-    const res = await request(app).post('/api/auth/login')
+    const res = await request(app)
+      .post('/api/auth/login')
       .send({ email: 'nobody@example.com', password: 'Password1!' })
 
     expect(res.status).toBe(401)

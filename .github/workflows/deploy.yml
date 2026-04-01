@@ -228,17 +228,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Re-tag images for production
-        run: |
-          # Pull staging images and re-tag as production
-          docker pull ${{ env.BACKEND_IMAGE }}:staging
-          docker tag ${{ env.BACKEND_IMAGE }}:staging ${{ env.BACKEND_IMAGE }}:production
-          docker push ${{ env.BACKEND_IMAGE }}:production
-
-          docker pull ${{ env.FRONTEND_IMAGE }}:staging
-          docker tag ${{ env.FRONTEND_IMAGE }}:staging ${{ env.FRONTEND_IMAGE }}:production
-          docker push ${{ env.FRONTEND_IMAGE }}:production
-
       - name: Build & push frontend image (production URLs)
         uses: docker/build-push-action@v5
         with:

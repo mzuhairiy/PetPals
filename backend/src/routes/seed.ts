@@ -10,15 +10,9 @@ const router = Router()
 // Convert USD to IDR (multiply by 16000)
 const toIDR = (usd: number) => Math.round(usd * 16000)
 
-// POST /api/seed - Seed the database (non-production only)
+// POST /api/seed - Seed the database
 router.post('/', asyncHandler(async (req: Request, res: Response) => {
-  // Block in production
-  if (config.nodeEnv === 'production') {
-    return res.status(403).json({
-      success: false,
-      error: { message: 'Seeding is not allowed in production' }
-    })
-  }
+  // Require secret for all environments
 
   // Optional secret key for extra protection
   const { secret } = req.body

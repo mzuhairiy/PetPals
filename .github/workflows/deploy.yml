@@ -212,12 +212,11 @@ jobs:
             # Clean up old images
             docker image prune -f
 
-  # ─── Stage 4: Deploy to Production (manual trigger) ───
+  # ─── Stage 4: Deploy to Production (requires approval) ───
   deploy-production:
     needs: deploy-staging
     runs-on: ubuntu-latest
     environment: production
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_production == 'true'
     permissions:
       contents: read
       packages: write

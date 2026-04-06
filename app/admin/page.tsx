@@ -82,13 +82,13 @@ export default function AdminDashboard() {
   ]
 
   return (
-    <div>
+    <div data-testid="admin-dashboard-page">
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" data-testid="admin-stats-cards">
         {statCards.map((stat) => (
-          <Link key={stat.title} href={stat.href}>
+          <Link key={stat.title} href={stat.href} data-testid={`admin-stat-card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">{stat.title}</CardTitle>
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-2xl font-bold" data-testid={`admin-stat-value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>{stat.value}</div>
               </CardContent>
             </Card>
           </Link>
@@ -221,20 +221,20 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Recent Orders */}
-        <Card>
+        <Card data-testid="admin-recent-orders-card">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Orders</CardTitle>
               <CardDescription>Latest orders in the system</CardDescription>
             </div>
-            <Link href="/admin/orders" className="text-sm text-primary hover:underline">
+            <Link href="/admin/orders" className="text-sm text-primary hover:underline" data-testid="admin-view-all-orders-link">
               View all
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-4" data-testid="admin-recent-orders-list">
               {stats?.recentOrders?.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg" data-testid={`admin-recent-order-${order.id}`}>
                   <div>
                     <div className="font-mono text-sm">{order.id.slice(0, 8)}...</div>
                     <div className="text-xs text-gray-500">

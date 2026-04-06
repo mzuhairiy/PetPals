@@ -11,9 +11,10 @@ interface ProductQuantityProps {
   initialQuantity?: number
   maxQuantity: number
   onQuantityChange?: (quantity: number) => void
+  testIdPrefix?: string
 }
 
-export default function ProductQuantity({ initialQuantity = 1, maxQuantity, onQuantityChange }: ProductQuantityProps) {
+export default function ProductQuantity({ initialQuantity = 1, maxQuantity, onQuantityChange, testIdPrefix }: ProductQuantityProps) {
   const [quantity, setQuantity] = useState(initialQuantity)
 
   const increment = () => {
@@ -41,7 +42,7 @@ export default function ProductQuantity({ initialQuantity = 1, maxQuantity, onQu
   }
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center" data-testid={testIdPrefix ? `${testIdPrefix}-quantity` : undefined}>
       <span className="mr-4 font-medium">Quantity:</span>
       <div className="flex items-center">
         <Button
@@ -50,6 +51,7 @@ export default function ProductQuantity({ initialQuantity = 1, maxQuantity, onQu
           onClick={decrement}
           disabled={quantity <= 1}
           className="h-9 w-9 rounded-r-none"
+          data-testid={testIdPrefix ? `${testIdPrefix}-qty-decrement` : undefined}
         >
           <Minus className="h-4 w-4" />
           <span className="sr-only">Decrease quantity</span>
@@ -61,6 +63,7 @@ export default function ProductQuantity({ initialQuantity = 1, maxQuantity, onQu
           value={quantity}
           onChange={handleChange}
           className="h-9 w-14 rounded-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          data-testid={testIdPrefix ? `${testIdPrefix}-qty-input` : undefined}
         />
         <Button
           variant="outline"
@@ -68,6 +71,7 @@ export default function ProductQuantity({ initialQuantity = 1, maxQuantity, onQu
           onClick={increment}
           disabled={quantity >= maxQuantity}
           className="h-9 w-9 rounded-l-none"
+          data-testid={testIdPrefix ? `${testIdPrefix}-qty-increment` : undefined}
         >
           <Plus className="h-4 w-4" />
           <span className="sr-only">Increase quantity</span>

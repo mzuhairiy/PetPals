@@ -39,12 +39,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="md:w-1/2">
           <div className="sticky top-20">
             <div className="aspect-square overflow-hidden rounded-lg bg-muted">
-              <SafeImage src={product.image || '/placeholder.svg?height=600&width=600'} alt={product.name} width={600} height={600} className="h-full w-full object-cover" priority />
+              <SafeImage src={product.image || '/placeholder.svg?height=600&width=600'} alt={product.name} width={600} height={600} data-testid={`product-image-${product.id}`} className="h-full w-full object-cover" priority />
             </div>
             <div className="mt-4 grid grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((img, i) => (
                 <div key={i} className="overflow-hidden rounded-lg bg-muted">
-                  <SafeImage src={product.image || '/placeholder.svg?height=150&width=150'} alt={`Product view ${i}`} width={150} height={150} className="h-full w-full object-cover" />
+                  <SafeImage src={product.image || '/placeholder.svg?height=150&width=150'} alt={`Product view ${i}`} width={150} height={150} data-testid={`product-thumb-${product.id}-${i}`} className="h-full w-full object-cover" />
                 </div>
               ))}
             </div>
@@ -54,12 +54,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
         {/* Product Details */}
         <div className="md:w-1/2">
           <div className="mb-6">
-            <Link href="/shop" className="text-sm text-primary hover:underline">
+            <Link href="/shop" className="text-sm text-primary hover:underline" data-testid="back-to-shop-link">
               Back to Shop
             </Link>
           </div>
 
-          <h1 className="text-3xl font-bold">{product.name}</h1>
+          <h1 className="text-3xl font-bold" data-testid={`product-title-${product.id}`}>{product.name}</h1>
 
           <div className="mt-2 flex items-center">
             <div className="flex">
@@ -77,12 +77,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div className="mt-6">
             {product.originalPrice && product.originalPrice > product.price ? (
               <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-primary">{formatPrice(product.price)}</span>
-                <span className="text-lg text-muted-foreground line-through">{formatPrice(product.originalPrice)}</span>
+                <span className="text-3xl font-bold text-primary" data-testid={`product-price-${product.id}`}>{formatPrice(product.price)}</span>
+                <span className="text-lg text-muted-foreground line-through" data-testid={`product-original-price-${product.id}`}>{formatPrice(product.originalPrice)}</span>
                 <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Save {formatPrice(product.originalPrice - product.price)}</span>
               </div>
             ) : (
-              <span className="text-3xl font-bold text-primary">{formatPrice(product.price)}</span>
+              <span className="text-3xl font-bold text-primary" data-testid={`product-price-${product.id}`}>{formatPrice(product.price)}</span>
             )}
           </div>
 
@@ -90,9 +90,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <p className="text-muted-foreground">{product.description}</p>
 
             <div className="space-y-2">
-              <div className="flex items-center">
+              <div className="flex items-center" data-testid={`product-stock-${product.id}`}>
                 <div className={cn('h-3 w-3 rounded-full mr-2', product.stock > 20 ? 'bg-green-500' : product.stock > 0 ? 'bg-yellow-500' : 'bg-red-500')} />
-                <span>{product.stock > 20 ? 'In Stock' : product.stock > 0 ? `Low Stock (${product.stock} left)` : 'Out of Stock'}</span>
+                <span data-testid={`product-stock-text-${product.id}`}>{product.stock > 20 ? 'In Stock' : product.stock > 0 ? `Low Stock (${product.stock} left)` : 'Out of Stock'}</span>
               </div>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Truck className="mr-2 h-4 w-4" />
@@ -100,7 +100,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
             </div>
 
-            <AddToCartWithQuantity product={product} />
+            <AddToCartWithQuantity product={product} testIdPrefix={`product-${product.id}`} />
 
             <div className="border-t border-b py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex items-center">

@@ -8,9 +8,10 @@ import type { Product } from "@/lib/types"
 
 interface AddToCartWithQuantityProps {
   product: Product
+  testIdPrefix?: string
 }
 
-export default function AddToCartWithQuantity({ product }: AddToCartWithQuantityProps) {
+export default function AddToCartWithQuantity({ product, testIdPrefix }: AddToCartWithQuantityProps) {
   const [quantity, setQuantity] = useState(1)
 
   return (
@@ -18,6 +19,7 @@ export default function AddToCartWithQuantity({ product }: AddToCartWithQuantity
       <ProductQuantity 
         maxQuantity={product.stock} 
         onQuantityChange={setQuantity}
+        testIdPrefix={testIdPrefix}
       />
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -25,6 +27,7 @@ export default function AddToCartWithQuantity({ product }: AddToCartWithQuantity
           product={product} 
           quantity={quantity}
           className="flex-1" 
+          dataTestId={testIdPrefix ? `${testIdPrefix}-add-to-cart` : undefined}
         />
         <WishlistButton 
           product={product} 

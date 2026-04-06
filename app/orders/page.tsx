@@ -100,9 +100,9 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="container px-4 py-8 md:py-12">
+    <div className="container px-4 py-8 md:py-12" data-testid="orders-page">
       <div className="mb-8">
-        <Button variant="ghost" onClick={() => router.push("/shop")}>
+        <Button variant="ghost" onClick={() => router.push("/shop")} data-testid="orders-continue-shopping-btn">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Continue Shopping
         </Button>
@@ -111,26 +111,26 @@ export default function OrdersPage() {
       <h1 className="text-3xl font-bold mb-8">Order History</h1>
 
       {orders.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12" data-testid="orders-empty">
           <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-xl font-semibold mb-2">No orders yet</h2>
           <p className="text-muted-foreground mb-6">You haven't placed any orders yet.</p>
           <Button asChild>
-            <Link href="/shop">Start Shopping</Link>
+            <Link href="/shop" data-testid="orders-empty-shop-link">Start Shopping</Link>
           </Button>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6" data-testid="orders-list">
           {orders.map((order) => (
-            <Card key={order.id} className="p-6">
+            <Card key={order.id} className="p-6" data-testid={`order-card-${order.id}`}>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Order ID</p>
-                  <p className="font-mono text-sm">{order.id}</p>
+                  <p className="font-mono text-sm" data-testid={`order-id-${order.id}`}>{order.id}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Date</p>
-                  <p className="text-sm">
+                  <p className="text-sm" data-testid={`order-date-${order.id}`}>
                     {new Date(order.createdAt).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
@@ -140,25 +140,25 @@ export default function OrdersPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="font-semibold">Rp {order.total.toLocaleString("id-ID")}</p>
+                  <p className="font-semibold" data-testid={`order-total-${order.id}`}>Rp {order.total.toLocaleString("id-ID")}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Status</p>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`} data-testid={`order-status-${order.id}`}>
                     {order.status}
                   </span>
                 </div>
               </div>
 
-              <div className="border-t pt-4">
+              <div className="border-t pt-4" data-testid={`order-items-${order.id}`}>
                 <p className="text-sm font-medium mb-3">Products</p>
                 <div className="space-y-2">
                   {order.items.map((item, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span>
+                    <div key={index} className="flex justify-between text-sm" data-testid={`order-item-${order.id}-${index}`}>
+                      <span data-testid={`order-item-name-${order.id}-${index}`}>
                         {item.nameSnapshot} x {item.quantity}
                       </span>
-                      <span className="text-muted-foreground">
+                      <span className="text-muted-foreground" data-testid={`order-item-price-${order.id}-${index}`}>
                         Rp {item.price.toLocaleString("id-ID")}
                       </span>
                     </div>

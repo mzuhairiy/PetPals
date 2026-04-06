@@ -91,14 +91,14 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <div className="md:hidden">
-          <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)} data-testid="header-menu-btn">
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             <span className="sr-only">Toggle menu</span>
           </Button>
         </div>
 
         <div className="flex items-center">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2" data-testid="header-logo">
             <PawPrint className="h-6 w-6 text-primary" />
             <span className="hidden font-bold sm:inline-block text-xl">PetPals</span>
           </Link>
@@ -115,25 +115,27 @@ export default function Header() {
             </div>
           ) : (
             <>
-              <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
+              <Link href="/" className="text-sm font-medium transition-colors hover:text-primary" data-testid="nav-home-link">
                 Home
               </Link>
-              <Link href="/shop" className="text-sm font-medium transition-colors hover:text-primary">
+              <Link href="/shop" className="text-sm font-medium transition-colors hover:text-primary" data-testid="nav-shop-link">
                 Shop
               </Link>
               <Link
                 href="/shop?pet=cat"
                 className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+                data-testid="nav-cats-link"
               >
                 <Cat className="mr-1 h-4 w-4" /> Cats
               </Link>
               <Link
                 href="/shop?pet=dog"
                 className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+                data-testid="nav-dogs-link"
               >
                 <Dog className="mr-1 h-4 w-4" /> Dogs
               </Link>
-              <Link href="/about" className="text-sm font-medium transition-colors hover:text-primary">
+              <Link href="/about" className="text-sm font-medium transition-colors hover:text-primary" data-testid="nav-about-link">
                 About Us
               </Link>
             </>
@@ -153,6 +155,7 @@ export default function Header() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => searchResults.length > 0 && setShowResults(true)}
                   autoFocus
+                  data-testid="header-search-input"
                 />
                 {isSearching && (
                   <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
@@ -167,6 +170,7 @@ export default function Header() {
                       key={product.id}
                       onClick={() => handleResultClick(product.slug)}
                       className="w-full flex items-center gap-3 p-3 hover:bg-muted text-left transition-colors"
+                      data-testid={`search-result-${product.id}`}
                     >
                       <div className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
                         <img 
@@ -184,6 +188,7 @@ export default function Header() {
                   <button
                     onClick={handleSearch}
                     className="w-full p-3 text-sm text-primary hover:bg-muted text-center border-t"
+                    data-testid="header-view-all-results-btn"
                   >
                     View all results for "{searchQuery}"
                   </button>
@@ -203,6 +208,7 @@ export default function Header() {
                 size="icon"
                 className="absolute right-0 top-0"
                 onClick={closeSearch}
+                data-testid="header-search-close"
               >
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close search</span>
@@ -221,7 +227,7 @@ export default function Header() {
           ) : (
             <>
               {!isSearchOpen && (
-                <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(true)}>
+                <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(true)} data-testid="header-search-open">
                   <Search className="h-5 w-5" />
                   <span className="sr-only">Search</span>
                 </Button>
@@ -229,7 +235,7 @@ export default function Header() {
 
               {isAuthenticated && (
                 <Link href="/wishlist">
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" data-testid="header-wishlist-btn">
                     <Heart className="h-5 w-5" />
                     <span className="sr-only">Wishlist</span>
                   </Button>
@@ -306,10 +312,10 @@ export default function Header() {
             <Skeleton className="h-9 w-9" />
           ) : (
             <Link href="/cart">
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="relative" data-testid="header-cart-btn">
                 <ShoppingCart className="h-5 w-5" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white" data-testid="header-cart-count">
                     {totalItems}
                   </span>
                 )}

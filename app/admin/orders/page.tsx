@@ -164,7 +164,7 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div>
+    <div data-testid="admin-orders-page">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <ShoppingCart className="h-6 w-6" />

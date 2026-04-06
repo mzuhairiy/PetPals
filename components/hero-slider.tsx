@@ -56,9 +56,9 @@ export default function HeroSlider({ slides, autoPlayInterval = 5000 }: HeroSlid
   };
 
   return (
-    <div className="relative h-[650px] overflow-hidden">
+    <div className="relative h-[650px] overflow-hidden" data-testid="hero-slider">
       {slides.map((slide, index) => (
-        <div key={index} className={cn('absolute inset-0 transition-opacity duration-1000', index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0')}>
+        <div key={index} data-testid={`hero-slide-${index}`} className={cn('absolute inset-0 transition-opacity duration-1000', index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0')}>
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50 z-10" />
           {isLoading[index] && (
             <div className="absolute inset-0 bg-gray-200 animate-pulse z-0 flex items-center justify-center">
@@ -80,7 +80,7 @@ export default function HeroSlider({ slides, autoPlayInterval = 5000 }: HeroSlid
               <p className="text-xl text-white/90">{slide.description}</p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
-                  <Link href={slide.buttonLink}>{slide.buttonText}</Link>
+                  <Link href={slide.buttonLink} data-testid={`hero-cta-${index}`}>{slide.buttonText}</Link>
                 </Button>
               </div>
             </div>
@@ -89,10 +89,10 @@ export default function HeroSlider({ slides, autoPlayInterval = 5000 }: HeroSlid
       ))}
 
       {/* Navigation Arrows */}
-      <button onClick={prevSlide} className="absolute left-4 top-1/2 z-20 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full" aria-label="Previous slide">
+      <button onClick={prevSlide} data-testid="hero-prev" className="absolute left-4 top-1/2 z-20 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full" aria-label="Previous slide">
         <ChevronLeft className="h-6 w-6" />
       </button>
-      <button onClick={nextSlide} className="absolute right-4 top-1/2 z-20 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full" aria-label="Next slide">
+      <button onClick={nextSlide} data-testid="hero-next" className="absolute right-4 top-1/2 z-20 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full" aria-label="Next slide">
         <ChevronRight className="h-6 w-6" />
       </button>
 
@@ -101,6 +101,7 @@ export default function HeroSlider({ slides, autoPlayInterval = 5000 }: HeroSlid
         {slides.map((_, index) => (
           <button
             key={index}
+            data-testid={`hero-dot-${index}`}
             onClick={() => goToSlide(index)}
             className={cn('w-3 h-3 rounded-full transition-all', index === currentSlide ? 'bg-white scale-110' : 'bg-white/50 hover:bg-white/80')}
             aria-label={`Go to slide ${index + 1}`}

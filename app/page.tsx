@@ -17,7 +17,7 @@ export default async function Home() {
   const dogProducts = products.filter((product: any) => product.pet === 'DOG').slice(0, 4);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen" data-testid="home-page">
       {/* Hero Slider */}
       <HeroSlider
         slides={[
@@ -46,10 +46,10 @@ export default async function Home() {
       />
 
       {/* Features Section */}
-      <section className="py-12 bg-muted">
+      <section className="py-12 bg-muted" data-testid="features-section">
         <div className="container px-4">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="bg-white border-none shadow-sm">
+            <Card className="bg-white border-none shadow-sm" data-testid="feature-card-delivery">
               <CardContent className="flex flex-col items-center text-center p-8">
                 <div className="p-3 rounded-full bg-primary/10 mb-4">
                   <Truck className="h-6 w-6 text-primary" />
@@ -59,7 +59,7 @@ export default async function Home() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-none shadow-sm">
+            <Card className="bg-white border-none shadow-sm" data-testid="feature-card-return">
               <CardContent className="flex flex-col items-center text-center p-8">
                 <div className="p-3 rounded-full bg-primary/10 mb-4">
                   <RotateCcw className="h-6 w-6 text-primary" />
@@ -69,7 +69,7 @@ export default async function Home() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-none shadow-sm">
+            <Card className="bg-white border-none shadow-sm" data-testid="feature-card-payment">
               <CardContent className="flex flex-col items-center text-center p-8">
                 <div className="p-3 rounded-full bg-primary/10 mb-4">
                   <ShieldCheck className="h-6 w-6 text-primary" />
@@ -79,7 +79,7 @@ export default async function Home() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-none shadow-sm">
+            <Card className="bg-white border-none shadow-sm" data-testid="feature-card-support">
               <CardContent className="flex flex-col items-center text-center p-8">
                 <div className="p-3 rounded-full bg-primary/10 mb-4">
                   <HeadphonesIcon className="h-6 w-6 text-primary" />
@@ -93,19 +93,19 @@ export default async function Home() {
       </section>
 
       {/* Featured Products Section */}
-      <section className="py-16">
+      <section className="py-16" data-testid="featured-products-section">
         <div className="container px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight">Featured Products</h2>
+              <h2 className="text-3xl font-bold tracking-tight" data-testid="featured-products-title">Featured Products</h2>
               <p className="text-muted-foreground mt-2">Handpicked products for your furry friends</p>
             </div>
-            <Button asChild variant="link" className="text-primary mt-2 md:mt-0">
+            <Button asChild variant="link" className="text-primary mt-2 md:mt-0" data-testid="view-all-products-link">
               <Link href="/shop">View All Products</Link>
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" data-testid="featured-products-grid">
             {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -114,40 +114,40 @@ export default async function Home() {
       </section>
 
       {/* Pet Categories */}
-      <section className="py-16 bg-muted">
+      <section className="py-16 bg-muted" data-testid="pet-categories-section">
         <div className="container px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Cat Products */}
-            <div>
+            <div data-testid="cat-products-category">
               <div className="flex items-center mb-6">
                 <Cat className="h-6 w-6 text-primary mr-2" />
-                <h2 className="text-2xl font-bold">Cat Products</h2>
+                <h2 className="text-2xl font-bold" data-testid="cat-products-title">Cat Products</h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" data-testid="cat-products-grid">
                 {catProducts.map((product) => (
                   <ProductCard key={product.id} product={product} compact />
                 ))}
               </div>
               <div className="mt-6 text-center">
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" data-testid="view-all-cat-products-btn">
                   <Link href="/shop?category=cat">View All Cat Products</Link>
                 </Button>
               </div>
             </div>
 
             {/* Dog Products */}
-            <div>
+            <div data-testid="dog-products-category">
               <div className="flex items-center mb-6">
                 <Dog className="h-6 w-6 text-primary mr-2" />
-                <h2 className="text-2xl font-bold">Dog Products</h2>
+                <h2 className="text-2xl font-bold" data-testid="dog-products-title">Dog Products</h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" data-testid="dog-products-grid">
                 {dogProducts.map((product) => (
                   <ProductCard key={product.id} product={product} compact />
                 ))}
               </div>
               <div className="mt-6 text-center">
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" data-testid="view-all-dog-products-btn">
                   <Link href="/shop?category=dog">View All Dog Products</Link>
                 </Button>
               </div>
@@ -157,15 +157,15 @@ export default async function Home() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 bg-primary text-white">
+      <section className="py-16 bg-primary text-white" data-testid="newsletter-section">
         <div className="container px-4">
           <div className="max-w-3xl mx-auto text-center">
             <PawPrint className="h-12 w-12 mx-auto mb-4" />
-            <h2 className="text-3xl font-bold mb-4">Join Our Pack</h2>
+            <h2 className="text-3xl font-bold mb-4" data-testid="newsletter-title">Join Our Pack</h2>
             <p className="text-white/90 mb-6">Subscribe to our newsletter for exclusive offers, pet care tips, and new product alerts.</p>
-            <form className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-              <input type="email" placeholder="Your email address" className="px-4 py-2 rounded-md flex-1 text-black" required />
-              <Button className="bg-white text-primary hover:bg-white/90">Subscribe</Button>
+            <form className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto" data-testid="newsletter-form">
+              <input type="email" placeholder="Your email address" className="px-4 py-2 rounded-md flex-1 text-black" required data-testid="newsletter-email-input" />
+              <Button className="bg-white text-primary hover:bg-white/90" data-testid="newsletter-subscribe-btn">Subscribe</Button>
             </form>
           </div>
         </div>

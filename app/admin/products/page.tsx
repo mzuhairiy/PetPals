@@ -178,7 +178,7 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div>
+    <div data-testid="admin-products-page">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Package className="h-6 w-6" />
@@ -186,7 +186,7 @@ export default function AdminProductsPage() {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()}>
+            <Button onClick={() => handleOpenDialog()} data-testid="admin-add-product-btn">
               <Plus className="h-4 w-4 mr-2" />
               Add Product
             </Button>
@@ -194,7 +194,7 @@ export default function AdminProductsPage() {
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <form onSubmit={handleSubmit}>
               <DialogHeader>
-                <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+                <DialogTitle data-testid="admin-product-dialog-title">{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
                 <DialogDescription>
                   {editingProduct ? "Update product details below" : "Fill in the product details below"}
                 </DialogDescription>
@@ -208,6 +208,7 @@ export default function AdminProductsPage() {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value, slug: generateSlug(e.target.value) })}
                       required
+                      data-testid="admin-product-name-input"
                     />
                   </div>
                   <div className="space-y-2">
@@ -217,6 +218,7 @@ export default function AdminProductsPage() {
                       value={formData.slug}
                       onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                       required
+                      data-testid="admin-product-slug-input"
                     />
                   </div>
                 </div>
@@ -227,6 +229,7 @@ export default function AdminProductsPage() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    data-testid="admin-product-description-input"
                   />
                 </div>
                 <div className="grid grid-cols-3 gap-4">
@@ -238,6 +241,7 @@ export default function AdminProductsPage() {
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
                       required
+                      data-testid="admin-product-price-input"
                     />
                   </div>
                   <div className="space-y-2">
@@ -247,6 +251,7 @@ export default function AdminProductsPage() {
                       type="number"
                       value={formData.originalPrice || ""}
                       onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value ? parseInt(e.target.value) : undefined })}
+                      data-testid="admin-product-original-price-input"
                     />
                   </div>
                   <div className="space-y-2">
@@ -257,6 +262,7 @@ export default function AdminProductsPage() {
                       value={formData.stock}
                       onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
                       required
+                      data-testid="admin-product-stock-input"
                     />
                   </div>
                 </div>
@@ -268,6 +274,7 @@ export default function AdminProductsPage() {
                       value={formData.image}
                       onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                       placeholder="https://..."
+                      data-testid="admin-product-image-input"
                     />
                   </div>
                   <div className="space-y-2">
@@ -279,6 +286,7 @@ export default function AdminProductsPage() {
                       max="100"
                       value={formData.discount}
                       onChange={(e) => setFormData({ ...formData, discount: parseInt(e.target.value) || 0 })}
+                      data-testid="admin-product-discount-input"
                     />
                   </div>
                 </div>
@@ -344,10 +352,10 @@ export default function AdminProductsPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} data-testid="admin-product-cancel-btn">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting} data-testid="admin-product-submit-btn">
                   {isSubmitting ? "Saving..." : editingProduct ? "Update" : "Create"}
                 </Button>
               </DialogFooter>
@@ -366,6 +374,7 @@ export default function AdminProductsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 w-64"
+                data-testid="admin-products-search-input"
               />
             </div>
           </div>
@@ -385,7 +394,7 @@ export default function AdminProductsPage() {
             </TableHeader>
             <TableBody>
               {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} data-testid={`admin-product-row-${product.id}`}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       {product.image && (
@@ -431,6 +440,7 @@ export default function AdminProductsPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleOpenDialog(product)}
+                        data-testid={`admin-product-edit-btn-${product.id}`}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -438,6 +448,7 @@ export default function AdminProductsPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDelete(product.id)}
+                        data-testid={`admin-product-delete-btn-${product.id}`}
                       >
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>

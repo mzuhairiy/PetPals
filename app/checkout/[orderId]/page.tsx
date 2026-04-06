@@ -208,11 +208,11 @@ function CheckoutPaymentContent({ params }: { params: Promise<{ orderId: string 
 
   if (!orderData) {
     return (
-      <div className="container flex items-center justify-center min-h-screen px-4">
+      <div className="container flex items-center justify-center min-h-screen px-4" data-testid="payment-order-not-found">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Order Not Found</h2>
           <p className="text-muted-foreground mb-4">We couldn't find this order.</p>
-          <Button onClick={() => router.push("/shop")}>
+          <Button onClick={() => router.push("/shop")} data-testid="payment-not-found-shop-btn">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Continue Shopping
           </Button>
@@ -222,33 +222,33 @@ function CheckoutPaymentContent({ params }: { params: Promise<{ orderId: string 
   }
 
   return (
-    <div className="container px-4 py-8 md:py-12">
+    <div className="container px-4 py-8 md:py-12" data-testid="payment-page">
       <div className="mb-8">
-        <Button variant="ghost" onClick={handleBack}>
+        <Button variant="ghost" onClick={handleBack} data-testid="payment-back-btn">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Checkout
         </Button>
       </div>
 
-      <Card className="max-w-lg mx-auto p-6">
+      <Card className="max-w-lg mx-auto p-6" data-testid="payment-card">
         <h1 className="text-2xl font-bold mb-6">Complete Your Payment</h1>
 
         <div className="space-y-4 mb-6">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Order ID</span>
-            <span className="font-medium">{orderData.id.slice(0, 8)}...</span>
+            <span className="font-medium" data-testid="payment-order-id">{orderData.id.slice(0, 8)}...</span>
           </div>
 
           <div className="flex justify-between">
             <span className="text-muted-foreground">Items</span>
-            <span>{orderData.items.length} item(s)</span>
+            <span data-testid="payment-items-count">{orderData.items.length} item(s)</span>
           </div>
 
           <Separator />
 
           <div className="flex justify-between text-lg font-semibold">
             <span>Total</span>
-            <span>Rp {orderData.total.toLocaleString('id-ID')}</span>
+            <span data-testid="payment-total">Rp {orderData.total.toLocaleString('id-ID')}</span>
           </div>
         </div>
 
@@ -256,6 +256,7 @@ function CheckoutPaymentContent({ params }: { params: Promise<{ orderId: string 
           onClick={handlePayNow}
           disabled={isCreatingToken}
           className="w-full"
+          data-testid="payment-pay-now-btn"
         >
           {isCreatingToken ? (
             <>
@@ -267,7 +268,7 @@ function CheckoutPaymentContent({ params }: { params: Promise<{ orderId: string 
           )}
         </Button>
 
-        <p className="text-center text-sm text-muted-foreground mt-4">
+        <p className="text-center text-sm text-muted-foreground mt-4" data-testid="payment-test-mode-note">
           Test mode: Use card number 4811 1111 1111 1114
         </p>
       </Card>

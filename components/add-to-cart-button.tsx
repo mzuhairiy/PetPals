@@ -10,9 +10,10 @@ interface AddToCartButtonProps {
   product: Product
   quantity?: number
   className?: string
+  dataTestId?: string
 }
 
-export default function AddToCartButton({ product, quantity = 1, className }: AddToCartButtonProps) {
+export default function AddToCartButton({ product, quantity = 1, className, dataTestId }: AddToCartButtonProps) {
   const { addToCart } = useCart()
 
   const handleAddToCart = () => {
@@ -30,6 +31,7 @@ export default function AddToCartButton({ product, quantity = 1, className }: Ad
       onClick={handleAddToCart}
       className={cn("bg-primary hover:bg-primary/90", className)}
       disabled={product.stock === 0}
+      data-testid={dataTestId}
     >
       <ShoppingCart className="mr-2 h-4 w-4" />
       {product.stock === 0 ? "Out of Stock" : "Add to Cart"}

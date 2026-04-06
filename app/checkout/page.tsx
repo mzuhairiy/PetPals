@@ -238,22 +238,22 @@ function CheckoutContent() {
   // Success state
   if (showSuccess) {
     return (
-      <div className="container px-4 py-16 text-center">
+      <div className="container px-4 py-16 text-center" data-testid="checkout-success-page">
         <div className="flex justify-center mb-4">
           <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-3xl font-bold mb-4">Order Placed Successfully!</h1>
-        <p className="text-muted-foreground mb-8">
+        <h1 className="text-3xl font-bold mb-4" data-testid="checkout-success-title">Order Placed Successfully!</h1>
+        <p className="text-muted-foreground mb-8" data-testid="checkout-success-message">
           Thank you for your order. Your payment has been processed and your order is being prepared for shipment.
         </p>
         <div className="space-y-4">
           <Button asChild className="w-full">
-            <Link href="/shop">Continue Shopping</Link>
+            <Link href="/shop" data-testid="checkout-success-continue-shopping-link">Continue Shopping</Link>
           </Button>
           <Button variant="outline" asChild className="w-full">
-            <Link href="/orders">View Order History</Link>
+            <Link href="/orders" data-testid="checkout-success-view-orders-link">View Order History</Link>
           </Button>
         </div>
       </div>
@@ -262,20 +262,20 @@ function CheckoutContent() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="container px-4 py-16 text-center">
+      <div className="container px-4 py-16 text-center" data-testid="checkout-empty-cart">
         <h1 className="text-3xl font-bold">Your cart is empty</h1>
         <p className="mt-2 text-muted-foreground">Add some items to your cart before proceeding to checkout.</p>
         <Button asChild className="mt-8">
-          <Link href="/shop">Shop Now</Link>
+          <Link href="/shop" data-testid="checkout-empty-shop-link">Shop Now</Link>
         </Button>
       </div>
     )
   }
 
   return (
-    <div className="container px-4 py-8 md:py-12">
+    <div className="container px-4 py-8 md:py-12" data-testid="checkout-page">
       <div className="mb-8">
-        <Link href="/cart" className="flex items-center text-sm text-primary hover:underline">
+        <Link href="/cart" className="flex items-center text-sm text-primary hover:underline" data-testid="checkout-back-to-cart-link">
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back to Cart
         </Link>
@@ -285,7 +285,7 @@ function CheckoutContent() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate data-testid="checkout-form">
             <div className="space-y-8">
               {/* Shipping Information */}
               <div className="space-y-4">
@@ -300,9 +300,10 @@ function CheckoutContent() {
                       onBlur={() => trigger("firstName")}
                       className={errors.firstName ? "border-red-500" : ""}
                       disabled={isSubmitting}
+                      data-testid="checkout-first-name-input"
                     />
                     {errors.firstName && (
-                      <p className="text-red-500 text-xs">{errors.firstName.message}</p>
+                      <p className="text-red-500 text-xs" data-testid="checkout-first-name-error">{errors.firstName.message}</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -313,9 +314,10 @@ function CheckoutContent() {
                       onBlur={() => trigger("lastName")}
                       className={errors.lastName ? "border-red-500" : ""}
                       disabled={isSubmitting}
+                      data-testid="checkout-last-name-input"
                     />
                     {errors.lastName && (
-                      <p className="text-red-500 text-xs">{errors.lastName.message}</p>
+                      <p className="text-red-500 text-xs" data-testid="checkout-last-name-error">{errors.lastName.message}</p>
                     )}
                   </div>
                 </div>
@@ -329,9 +331,10 @@ function CheckoutContent() {
                     onBlur={() => trigger("email")}
                     className={errors.email ? "border-red-500" : ""}
                     disabled={isSubmitting}
+                    data-testid="checkout-email-input"
                   />
                   {errors.email && (
-                    <p className="text-red-500 text-xs">{errors.email.message}</p>
+                    <p className="text-red-500 text-xs" data-testid="checkout-email-error">{errors.email.message}</p>
                   )}
                 </div>
 
@@ -344,9 +347,10 @@ function CheckoutContent() {
                     onBlur={() => trigger("phone")}
                     className={errors.phone ? "border-red-500" : ""}
                     disabled={isSubmitting}
+                    data-testid="checkout-phone-input"
                   />
                   {errors.phone && (
-                    <p className="text-red-500 text-xs">{errors.phone.message}</p>
+                    <p className="text-red-500 text-xs" data-testid="checkout-phone-error">{errors.phone.message}</p>
                   )}
                 </div>
 
@@ -358,9 +362,10 @@ function CheckoutContent() {
                     onBlur={() => trigger("address")}
                     className={errors.address ? "border-red-500" : ""}
                     disabled={isSubmitting}
+                    data-testid="checkout-address-input"
                   />
                   {errors.address && (
-                    <p className="text-red-500 text-xs">{errors.address.message}</p>
+                    <p className="text-red-500 text-xs" data-testid="checkout-address-error">{errors.address.message}</p>
                   )}
                 </div>
 
@@ -373,9 +378,10 @@ function CheckoutContent() {
                       onBlur={() => trigger("city")}
                       className={errors.city ? "border-red-500" : ""}
                       disabled={isSubmitting}
+                      data-testid="checkout-city-input"
                     />
                     {errors.city && (
-                      <p className="text-red-500 text-xs">{errors.city.message}</p>
+                      <p className="text-red-500 text-xs" data-testid="checkout-city-error">{errors.city.message}</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -386,9 +392,10 @@ function CheckoutContent() {
                       onBlur={() => trigger("state")}
                       className={errors.state ? "border-red-500" : ""}
                       disabled={isSubmitting}
+                      data-testid="checkout-state-input"
                     />
                     {errors.state && (
-                      <p className="text-red-500 text-xs">{errors.state.message}</p>
+                      <p className="text-red-500 text-xs" data-testid="checkout-state-error">{errors.state.message}</p>
                     )}
                   </div>
                 </div>
@@ -402,9 +409,10 @@ function CheckoutContent() {
                       onBlur={() => trigger("zipCode")}
                       className={errors.zipCode ? "border-red-500" : ""}
                       disabled={isSubmitting}
+                      data-testid="checkout-zip-code-input"
                     />
                     {errors.zipCode && (
-                      <p className="text-red-500 text-xs">{errors.zipCode.message}</p>
+                      <p className="text-red-500 text-xs" data-testid="checkout-zip-code-error">{errors.zipCode.message}</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -415,9 +423,10 @@ function CheckoutContent() {
                       onBlur={() => trigger("country")}
                       className={errors.country ? "border-red-500" : ""}
                       disabled={isSubmitting}
+                      data-testid="checkout-country-input"
                     />
                     {errors.country && (
-                      <p className="text-red-500 text-xs">{errors.country.message}</p>
+                      <p className="text-red-500 text-xs" data-testid="checkout-country-error">{errors.country.message}</p>
                     )}
                   </div>
                 </div>
@@ -434,6 +443,7 @@ function CheckoutContent() {
                     {...register("notes")}
                     placeholder="Special instructions for delivery"
                     disabled={isSubmitting}
+                    data-testid="checkout-notes-input"
                   />
                 </div>
               </div>
@@ -444,6 +454,7 @@ function CheckoutContent() {
                   id="terms"
                   {...register("terms")}
                   className="rounded border-gray-300"
+                  data-testid="checkout-terms-checkbox"
                 />
                 <Label htmlFor="terms" className="text-sm">
                   I agree to the{" "}
@@ -457,10 +468,10 @@ function CheckoutContent() {
                 </Label>
               </div>
               {errors.terms && (
-                <p className="text-red-500 text-xs">{errors.terms.message}</p>
+                <p className="text-red-500 text-xs" data-testid="checkout-terms-error">{errors.terms.message}</p>
               )}
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button type="submit" className="w-full" disabled={isSubmitting} data-testid="checkout-submit-btn">
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -475,13 +486,13 @@ function CheckoutContent() {
         </div>
 
         <div>
-          <Card className="p-6">
+          <Card className="p-6" data-testid="checkout-order-summary-card">
             <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
 
             <div className="space-y-4">
-              <div className="max-h-80 overflow-y-auto space-y-4 pr-2">
+              <div className="max-h-80 overflow-y-auto space-y-4 pr-2" data-testid="checkout-order-items-list">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex gap-4">
+                  <div key={item.id} className="flex gap-4" data-testid={`checkout-order-item-${item.id}`}>
                     <div className="flex-shrink-0">
                       <Image
                         src={item.image || "/placeholder.svg?height=60&width=60"}
@@ -505,22 +516,22 @@ function CheckoutContent() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatPrice(subtotal)}</span>
+                  <span data-testid="checkout-subtotal">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tax ({TAX_PERCENTAGE}%)</span>
-                  <span>{formatPrice(tax)}</span>
+                  <span data-testid="checkout-tax">{formatPrice(tax)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
+                  <span data-testid="checkout-shipping">{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
                 </div>
 
                 <Separator />
 
                 <div className="flex justify-between font-medium">
                   <span>Total</span>
-                  <span>{formatPrice(total)}</span>
+                  <span data-testid="checkout-total">{formatPrice(total)}</span>
                 </div>
               </div>
 

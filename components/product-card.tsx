@@ -38,17 +38,19 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
   return (
     <Link href={`/product/${product.slug}`}>
       <Card
+        data-testid={`product-card-${product.id}`}
         className={cn('overflow-hidden transition-all duration-200 h-full', isHovered && 'shadow-md transform translate-y-[-4px]')}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative">
           <SafeImage
-            src={product.image || '/placeholder.svg'}
-            alt={product.name}
-            width={300}
-            height={300}
-            className={cn('w-full object-cover transition-transform duration-300', compact ? 'h-40' : 'h-60', isHovered && 'scale-105')}
+          src={product.image || '/placeholder.svg'}
+          alt={product.name}
+          width={300}
+          height={300}
+          data-testid={`product-image-${product.id}`}
+          className={cn('w-full object-cover transition-transform duration-300', compact ? 'h-40' : 'h-60', isHovered && 'scale-105')}
           />
 
           {product.isNew && <Badge className="absolute top-2 left-2 bg-primary">New</Badge>}
@@ -57,7 +59,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
 
           {!compact && (
             <div className={cn('absolute bottom-0 right-0  p-2 transform transition-transform duration-300', isHovered ? 'translate-y-0' : 'translate-y-0')}>
-              <Button className=" bg-white text-primary hover:bg-white/90" onClick={handleAddToCart}>
+              <Button className=" bg-white text-primary hover:bg-white/90" onClick={handleAddToCart} data-testid={`add-to-cart-${product.id}`}>
                 <ShoppingCart className="h-4 w-4" />
               </Button>
             </div>
@@ -97,7 +99,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
           </div>
 
           {compact ? (
-            <Button size="sm" variant="ghost" className="p-0 h-8 w-8" onClick={handleAddToCart}>
+            <Button size="sm" variant="ghost" className="p-0 h-8 w-8" onClick={handleAddToCart} data-testid={`add-to-cart-${product.id}`}>
               <ShoppingCart className="h-4 w-4" />
               <span className="sr-only">Add to cart</span>
             </Button>

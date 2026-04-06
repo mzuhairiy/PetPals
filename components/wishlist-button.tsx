@@ -85,6 +85,7 @@ export default function WishlistButton({ product, productId, className, variant 
         size={size} 
         className={cn(className, 'gap-0')} 
         onClick={handleClick} 
+        data-testid={`wishlist-btn-${id}`}
         aria-label={isInList ? 'Remove from wishlist' : 'Add to wishlist'}
       >
         <Heart className={cn('h-5 w-5', isInList && 'fill-primary text-primary')} />
@@ -93,7 +94,7 @@ export default function WishlistButton({ product, productId, className, variant 
 
       {/* Sign In Dialog for Anonymous Users */}
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px]" data-testid="wishlist-dialog">
           <DialogHeader>
             <DialogTitle>Sign In Required</DialogTitle>
             <DialogDescription>
@@ -105,6 +106,7 @@ export default function WishlistButton({ product, productId, className, variant 
               variant="secondary"
               onClick={handleCancel}
               className="flex-1"
+              data-testid="wishlist-dialog-cancel"
             >
               Cancel
             </Button>
@@ -112,6 +114,7 @@ export default function WishlistButton({ product, productId, className, variant 
               variant="default"
               onClick={handleSignIn}
               className="flex-1"
+              data-testid="wishlist-dialog-signin"
             >
               Sign In
             </Button>

@@ -53,6 +53,7 @@ export default function SignInPage() {
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
+        dataTestId: "toast-signin-success",
       })
       
       // Redirect admin to admin panel, others to home
@@ -66,6 +67,7 @@ export default function SignInPage() {
         title: "Sign in failed",
         description: error.message || "Invalid email or password.",
         variant: "destructive",
+        dataTestId: "toast-signin-error",
       })
     } finally {
       setIsLoading(false)

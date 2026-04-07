@@ -87,7 +87,8 @@ function CheckoutPaymentContent({ params }: { params: Promise<{ orderId: string 
         toast({
           title: "Error",
           description: error.message || "Failed to load order",
-          variant: "destructive"
+          variant: "destructive",
+          dataTestId: "toast-payment-fetch-error",
         })
       } finally {
         setIsLoading(false)
@@ -148,7 +149,8 @@ function CheckoutPaymentContent({ params }: { params: Promise<{ orderId: string 
       toast({
         title: "Payment Error",
         description: error.message || "Failed to initialize payment",
-        variant: "destructive"
+        variant: "destructive",
+        dataTestId: "toast-payment-init-error",
       })
     } finally {
       setIsCreatingToken(false)
@@ -168,7 +170,8 @@ function CheckoutPaymentContent({ params }: { params: Promise<{ orderId: string 
           toast({
             title: "Payment Successful",
             description: "Your order has been placed successfully!",
-            variant: "default"
+            variant: "default",
+            dataTestId: "toast-payment-success",
           })
           handlePaymentSuccess()
         },
@@ -177,7 +180,8 @@ function CheckoutPaymentContent({ params }: { params: Promise<{ orderId: string 
           toast({
             title: "Payment Pending",
             description: "Your payment is being processed.",
-            variant: "default"
+            variant: "default",
+            dataTestId: "toast-payment-pending",
           })
         },
         onError: (result: unknown) => {
@@ -185,7 +189,8 @@ function CheckoutPaymentContent({ params }: { params: Promise<{ orderId: string 
           toast({
             title: "Payment Failed",
             description: "Please try again or use a different payment method.",
-            variant: "destructive"
+            variant: "destructive",
+            dataTestId: "toast-payment-failed",
           })
         },
         onClose: () => {

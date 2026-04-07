@@ -134,15 +134,15 @@ export default function AdminProductsPage() {
     try {
       if (editingProduct) {
         await updateProduct(editingProduct.id, cleanData)
-        toast({ title: "Product updated successfully" })
+        toast({ title: "Product updated successfully", dataTestId: "toast-admin-product-updated" })
       } else {
         await createProduct(cleanData)
-        toast({ title: "Product created successfully" })
+        toast({ title: "Product created successfully", dataTestId: "toast-admin-product-created" })
       }
       setIsDialogOpen(false)
       loadProducts()
     } catch (error) {
-      toast({ title: "Error", description: "Failed to save product", variant: "destructive" })
+      toast({ title: "Error", description: "Failed to save product", variant: "destructive", dataTestId: "toast-admin-product-save-error" })
     } finally {
       setIsSubmitting(false)
     }
@@ -153,10 +153,10 @@ export default function AdminProductsPage() {
 
     try {
       await deleteProduct(id)
-      toast({ title: "Product deleted successfully" })
+      toast({ title: "Product deleted successfully", dataTestId: "toast-admin-product-deleted" })
       loadProducts()
     } catch (error) {
-      toast({ title: "Error", description: "Failed to delete product", variant: "destructive" })
+      toast({ title: "Error", description: "Failed to delete product", variant: "destructive", dataTestId: "toast-admin-product-delete-error" })
     }
   }
 

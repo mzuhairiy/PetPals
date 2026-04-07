@@ -71,10 +71,10 @@ export default function AdminOrdersPage() {
     setIsUpdating(orderId)
     try {
       await updateOrderStatus(orderId, newStatus)
-      toast({ title: "Order status updated" })
+      toast({ title: "Order status updated", dataTestId: "toast-admin-order-status-updated" })
       loadOrders()
     } catch (error) {
-      toast({ title: "Error", description: "Failed to update order status", variant: "destructive" })
+      toast({ title: "Error", description: "Failed to update order status", variant: "destructive", dataTestId: "toast-admin-order-status-error" })
     } finally {
       setIsUpdating(null)
     }
@@ -84,10 +84,10 @@ export default function AdminOrdersPage() {
     setIsCreatingShipment(orderId)
     try {
       await createShipment(orderId)
-      toast({ title: "Shipment created successfully" })
+      toast({ title: "Shipment created successfully", dataTestId: "toast-admin-shipment-created" })
       loadOrders()
     } catch (error) {
-      toast({ title: "Error", description: "Failed to create shipment", variant: "destructive" })
+      toast({ title: "Error", description: "Failed to create shipment", variant: "destructive", dataTestId: "toast-admin-shipment-create-error" })
     } finally {
       setIsCreatingShipment(null)
     }
@@ -97,10 +97,10 @@ export default function AdminOrdersPage() {
     setIsCreatingShipment(orderId)
     try {
       await retryShipment(orderId)
-      toast({ title: "Shipment retry successful" })
+      toast({ title: "Shipment retry successful", dataTestId: "toast-admin-shipment-retry-success" })
       loadOrders()
     } catch (error) {
-      toast({ title: "Error", description: "Failed to retry shipment", variant: "destructive" })
+      toast({ title: "Error", description: "Failed to retry shipment", variant: "destructive", dataTestId: "toast-admin-shipment-retry-error" })
     } finally {
       setIsCreatingShipment(null)
     }
@@ -110,10 +110,10 @@ export default function AdminOrdersPage() {
     setIsSyncing(orderId)
     try {
       const result = await syncShipmentStatus(orderId)
-      toast({ title: "Status synced", description: result.message || `Order status: ${result.orderStatus}` })
+      toast({ title: "Status synced", description: result.message || `Order status: ${result.orderStatus}`, dataTestId: "toast-admin-shipment-synced" })
       loadOrders()
     } catch (error) {
-      toast({ title: "Error", description: "Failed to sync shipment status", variant: "destructive" })
+      toast({ title: "Error", description: "Failed to sync shipment status", variant: "destructive", dataTestId: "toast-admin-shipment-sync-error" })
     } finally {
       setIsSyncing(null)
     }

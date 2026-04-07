@@ -64,7 +64,8 @@ export default function OrdersPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to load orders",
-        variant: "destructive"
+        variant: "destructive",
+        dataTestId: "toast-orders-fetch-error",
       })
     } finally {
       setIsLoading(false)

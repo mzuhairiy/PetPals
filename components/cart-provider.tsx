@@ -68,6 +68,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         toast({
           title: "Item added to cart",
           description: message,
+          dataTestId: "toast-cart-item-added",
         })
       }, 0)
     }
@@ -87,6 +88,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         toast({
           title: "Item removed",
           description: `${itemToRemove.name} removed from your cart`,
+          dataTestId: "toast-cart-item-removed",
         })
       }, 0)
     }
@@ -108,6 +110,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       toast({
         title: "Cart cleared",
         description: "All items have been removed from your cart",
+        dataTestId: "toast-cart-cleared",
       })
     }, 0)
   }

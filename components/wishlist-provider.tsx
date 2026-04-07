@@ -121,7 +121,8 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       toast({
         title: "Please sign in",
         description: "You need to be signed in to add items to your wishlist.",
-        variant: "destructive"
+        variant: "destructive",
+        dataTestId: "toast-wishlist-signin-required",
       })
       return
     }
@@ -146,13 +147,15 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         toast({
           title: "Added to wishlist",
           description: `${item.name} has been added to your wishlist`,
+          dataTestId: "toast-wishlist-item-added",
         })
       } else {
         const error = await response.json()
         toast({
           title: "Error",
           description: error.error?.message || "Failed to add to wishlist",
-          variant: "destructive"
+          variant: "destructive",
+          dataTestId: "toast-wishlist-add-error",
         })
       }
     } catch (error) {
@@ -160,7 +163,8 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       toast({
         title: "Error",
         description: "Failed to add to wishlist. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        dataTestId: "toast-wishlist-add-error",
       })
     }
   }
@@ -176,6 +180,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         toast({
           title: "Removed from wishlist",
           description: `${item.name} has been removed from your wishlist`,
+          dataTestId: "toast-wishlist-item-removed",
         })
       }
       return
@@ -194,6 +199,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         toast({
           title: "Removed from wishlist",
           description: `${item.name} has been removed from your wishlist`,
+          dataTestId: "toast-wishlist-item-removed",
         })
       }
     } catch (error) {

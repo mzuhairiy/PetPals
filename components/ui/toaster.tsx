@@ -15,17 +15,17 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {toasts.map(function ({ id, title, description, action, dataTestId, ...props }) {
         return (
-          <Toast key={id} data-testid={`toast-${id}`} {...props}>
+          <Toast key={id} data-testid={dataTestId || "toast"} {...props}>
             <div className="grid gap-1">
-              {title && <ToastTitle data-testid={`toast-title-${id}`}>{title}</ToastTitle>}
+              {title && <ToastTitle data-testid={dataTestId ? `${dataTestId}-title` : "toast-title"}>{title}</ToastTitle>}
               {description && (
-                <ToastDescription data-testid={`toast-description-${id}`}>{description}</ToastDescription>
+                <ToastDescription data-testid={dataTestId ? `${dataTestId}-description` : "toast-description"}>{description}</ToastDescription>
               )}
             </div>
             {action}
-            <ToastClose data-testid={`toast-close-${id}`} />
+            <ToastClose data-testid={dataTestId ? `${dataTestId}-close` : "toast-close"} />
           </Toast>
         )
       })}

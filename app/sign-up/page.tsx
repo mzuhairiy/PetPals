@@ -57,6 +57,7 @@ export default function SignUpPage() {
       toast({
         title: "Account created!",
         description: "Welcome to PetPals!",
+        dataTestId: "toast-signup-success",
       })
       router.push("/")
     } catch (error: any) {
@@ -64,6 +65,7 @@ export default function SignUpPage() {
         title: "Registration failed",
         description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
+        dataTestId: "toast-signup-error",
       })
     } finally {
       setIsLoading(false)

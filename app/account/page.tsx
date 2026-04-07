@@ -48,6 +48,7 @@ export default function AccountPage() {
         title: "Validation Error",
         description: "Name cannot be empty.",
         variant: "destructive",
+        dataTestId: "toast-account-validation-error",
       })
       return
     }
@@ -59,12 +60,14 @@ export default function AccountPage() {
       toast({
         title: "Profile Updated",
         description: "Your profile has been updated successfully.",
+        dataTestId: "toast-account-update-success",
       })
     } catch (error: any) {
       toast({
         title: "Update Failed",
         description: error.message || "Failed to update profile. Please try again.",
         variant: "destructive",
+        dataTestId: "toast-account-update-error",
       })
     } finally {
       setIsLoading(false)
@@ -83,6 +86,7 @@ export default function AccountPage() {
       toast({
         title: "Logged Out",
         description: "You have been logged out from all devices.",
+        dataTestId: "toast-account-logout-success",
       })
       router.push("/sign-in")
     } catch (error: any) {
@@ -90,6 +94,7 @@ export default function AccountPage() {
         title: "Logout Failed",
         description: error.message || "Failed to log out from all devices.",
         variant: "destructive",
+        dataTestId: "toast-account-logout-error",
       })
     } finally {
       setIsLoggingOut(false)

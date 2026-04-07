@@ -168,7 +168,8 @@ function CheckoutContent() {
       toast({
         title: "Authentication required",
         description: "Please login to place an order.",
-        variant: "destructive"
+        variant: "destructive",
+        dataTestId: "toast-checkout-auth-required",
       })
       router.push("/sign-in?redirect=checkout")
       return
@@ -179,7 +180,8 @@ function CheckoutContent() {
       toast({
         title: "Cart is empty",
         description: "Please add items to your cart before checkout.",
-        variant: "destructive"
+        variant: "destructive",
+        dataTestId: "toast-checkout-cart-empty",
       })
       return
     }
@@ -228,7 +230,8 @@ function CheckoutContent() {
       toast({
         title: "Order failed",
         description: error.message || "Failed to place order. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        dataTestId: "toast-checkout-order-error",
       })
     } finally {
       setIsSubmitting(false)

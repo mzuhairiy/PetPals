@@ -429,9 +429,9 @@ export default function AdminProductsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      {product.isNew && <Badge>New</Badge>}
-                      {product.discount > 0 && <Badge variant="destructive">{product.discount}% OFF</Badge>}
-                      {product.featured && <Badge variant="secondary">Featured</Badge>}
+                      {product.isNew && <Badge data-testid={`admin-badge-new-${product.id}`}>New</Badge>}
+                      {product.discount > 0 && <Badge variant="destructive" data-testid={`admin-badge-discount-${product.id}`}>{product.discount}% OFF</Badge>}
+                      {product.featured && <Badge variant="secondary" data-testid={`admin-badge-featured-${product.id}`}>Featured</Badge>}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">

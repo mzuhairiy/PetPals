@@ -53,9 +53,9 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
           className={cn('w-full object-cover transition-transform duration-300', compact ? 'h-40' : 'h-60', isHovered && 'scale-105')}
           />
 
-          {product.isNew && <Badge className="absolute top-2 left-2 bg-primary">New</Badge>}
+          {product.isNew && <Badge className="absolute top-2 left-2 bg-primary" data-testid={`badge-new-${product.id}`}>New</Badge>}
 
-          {(product.discount ?? 0) > 0 && <Badge className="absolute top-2 right-2 bg-green-600">{product.discount}% OFF</Badge>}
+          {(product.discount ?? 0) > 0 && <Badge className="absolute top-2 right-2 bg-green-600" data-testid={`badge-discount-${product.id}`}>{product.discount}% OFF</Badge>}
 
           {!compact && (
             <div className={cn('absolute bottom-0 right-0  p-2 transform transition-transform duration-300', isHovered ? 'translate-y-0' : 'translate-y-0')}>

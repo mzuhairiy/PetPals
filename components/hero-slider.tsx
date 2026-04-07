@@ -76,8 +76,8 @@ export default function HeroSlider({ slides, autoPlayInterval = 5000 }: HeroSlid
           />
           <div className="container relative z-20 flex flex-col items-start justify-center h-full px-4">
             <div className="max-w-xl space-y-4">
-              <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">{slide.title}</h1>
-              <p className="text-xl text-white/90">{slide.description}</p>
+              <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl" data-testid={`hero-heading-${index}`}>{slide.title}</h1>
+              <p className="text-xl text-white/90" data-testid={`hero-description-${index}`}>{slide.description}</p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
                   <Link href={slide.buttonLink} data-testid={`hero-cta-${index}`}>{slide.buttonText}</Link>

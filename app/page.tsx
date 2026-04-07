@@ -54,7 +54,7 @@ export default async function Home() {
                 <div className="p-3 rounded-full bg-primary/10 mb-4">
                   <Truck className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-semibold">Free Same-Day Delivery</h3>
+                <h3 className="font-semibold" data-testid="free-delivery-heading">Free Same-Day Delivery</h3>
                 <p className="text-sm text-muted-foreground mt-2">Order before 2pm for same-day delivery</p>
               </CardContent>
             </Card>
@@ -64,7 +64,7 @@ export default async function Home() {
                 <div className="p-3 rounded-full bg-primary/10 mb-4">
                   <RotateCcw className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-semibold">30-Day Return</h3>
+                <h3 className="font-semibold" data-testid="return-policy-heading">30-Day Return</h3>
                 <p className="text-sm text-muted-foreground mt-2">No questions asked return policy</p>
               </CardContent>
             </Card>
@@ -74,7 +74,7 @@ export default async function Home() {
                 <div className="p-3 rounded-full bg-primary/10 mb-4">
                   <ShieldCheck className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-semibold">Secure Payment</h3>
+                <h3 className="font-semibold" data-testid="secure-payment-heading">Secure Payment</h3>
                 <p className="text-sm text-muted-foreground mt-2">100% secure payment processing</p>
               </CardContent>
             </Card>
@@ -84,7 +84,7 @@ export default async function Home() {
                 <div className="p-3 rounded-full bg-primary/10 mb-4">
                   <HeadphonesIcon className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-semibold">24/7 Support</h3>
+                <h3 className="font-semibold" data-testid="support-heading">24/7 Support</h3>
                 <p className="text-sm text-muted-foreground mt-2">Customer support available anytime</p>
               </CardContent>
             </Card>
@@ -98,7 +98,7 @@ export default async function Home() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
               <h2 className="text-3xl font-bold tracking-tight" data-testid="featured-products-title">Featured Products</h2>
-              <p className="text-muted-foreground mt-2">Handpicked products for your furry friends</p>
+              <p className="text-muted-foreground mt-2" data-testid="featured-products-subtitle">Handpicked products for your furry friends</p>
             </div>
             <Button asChild variant="link" className="text-primary mt-2 md:mt-0" data-testid="view-all-products-link">
               <Link href="/shop">View All Products</Link>
@@ -162,7 +162,7 @@ export default async function Home() {
           <div className="max-w-3xl mx-auto text-center">
             <PawPrint className="h-12 w-12 mx-auto mb-4" />
             <h2 className="text-3xl font-bold mb-4" data-testid="newsletter-title">Join Our Pack</h2>
-            <p className="text-white/90 mb-6">Subscribe to our newsletter for exclusive offers, pet care tips, and new product alerts.</p>
+            <p className="text-white/90 mb-6" data-testid="newsletter-subtitle">Subscribe to our newsletter for exclusive offers, pet care tips, and new product alerts.</p>
             <form className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto" data-testid="newsletter-form">
               <input type="email" placeholder="Your email address" className="px-4 py-2 rounded-md flex-1 text-black" required data-testid="newsletter-email-input" />
               <Button className="bg-white text-primary hover:bg-white/90" data-testid="newsletter-subscribe-btn">Subscribe</Button>

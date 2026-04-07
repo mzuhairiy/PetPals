@@ -212,7 +212,7 @@ export default function ShopFilters() {
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 mb-4">
           {category && (
-            <Badge variant="secondary" className="flex items-center gap-1">
+            <Badge variant="secondary" className="flex items-center gap-1" data-testid="badge-filter-category">
               Category: {category}
               <Button variant="ghost" size="icon" onClick={() => setCategory("")} className="h-4 w-4 p-0 ml-1">
                 <X className="h-3 w-3" />
@@ -222,7 +222,7 @@ export default function ShopFilters() {
           )}
 
           {pet && (
-            <Badge variant="secondary" className="flex items-center gap-1">
+            <Badge variant="secondary" className="flex items-center gap-1" data-testid="badge-filter-pet">
               Pet: {pet}
               <Button variant="ghost" size="icon" onClick={() => setPet("")} className="h-4 w-4 p-0 ml-1">
                 <X className="h-3 w-3" />
@@ -232,7 +232,7 @@ export default function ShopFilters() {
           )}
 
           {(priceRange[0] > 0 || priceRange[1] < priceRangeMax) && (
-            <Badge variant="secondary" className="flex items-center gap-1">
+            <Badge variant="secondary" className="flex items-center gap-1" data-testid="badge-filter-price">
               Price: {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
               <Button variant="ghost" size="icon" onClick={() => {
                 setPriceRange([0, priceRangeMax])

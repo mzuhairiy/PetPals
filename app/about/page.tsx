@@ -4,9 +4,9 @@ import { PawPrint, Heart, ShieldCheck, Truck } from "lucide-react"
 
 export default function AboutPage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen" data-testid="about-page">
       {/* Hero Section */}
-      <section className="relative">
+      <section className="relative" data-testid="about-hero-section">
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50 z-10" />
         <Image
           src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?q=80&w=1600&auto=format&fit=crop"
@@ -26,7 +26,7 @@ export default function AboutPage() {
       </section>
 
       {/* Our Story Section */}
-      <section className="py-16">
+      <section className="py-16" data-testid="about-story-section">
         <div className="container px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
@@ -67,7 +67,7 @@ export default function AboutPage() {
       </section>
 
       {/* Our Mission Section */}
-      <section className="py-16 bg-muted">
+      <section className="py-16 bg-muted" data-testid="about-mission-section">
         <div className="container px-4 text-center">
           <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
           <p className="max-w-3xl mx-auto text-lg mb-12">
@@ -111,7 +111,7 @@ export default function AboutPage() {
       </section>
 
       {/* Team Section */}
-      <section className="py-16">
+      <section className="py-16" data-testid="about-team-section">
         <div className="container px-4">
           <h2 className="text-3xl font-bold mb-6 text-center">Meet Our Team</h2>
           <p className="max-w-3xl mx-auto text-center text-muted-foreground mb-12">
@@ -161,7 +161,7 @@ export default function AboutPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 bg-primary text-white">
+      <section className="py-16 bg-primary text-white" data-testid="about-testimonials-section">
         <div className="container px-4">
           <h2 className="text-3xl font-bold mb-12 text-center">What Our Customers Say</h2>
 
@@ -199,7 +199,7 @@ export default function AboutPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16">
+      <section className="py-16" data-testid="about-cta-section">
         <div className="container px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Join Our Community</h2>
           <p className="max-w-2xl mx-auto text-muted-foreground mb-8">
@@ -211,8 +211,9 @@ export default function AboutPage() {
               placeholder="Your email address"
               className="px-4 py-2 rounded-md border flex-1"
               required
+              data-testid="about-cta-email-input"
             />
-            <Button>Subscribe</Button>
+            <Button data-testid="about-cta-subscribe-btn">Subscribe</Button>
           </div>
         </div>
       </section>

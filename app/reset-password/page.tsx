@@ -98,7 +98,7 @@ function ResetPasswordContent() {
 
   if (success) {
     return (
-      <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12">
+      <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12" data-testid="reset-password-success-page">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
@@ -111,7 +111,7 @@ function ResetPasswordContent() {
             <p className="text-green-600">Redirecting to sign in...</p>
           </CardContent>
           <CardFooter className="justify-center">
-            <Link href="/sign-in">
+            <Link href="/sign-in" data-testid="reset-password-success-signin-link">
               <Button variant="link">Click here to sign in</Button>
             </Link>
           </CardFooter>
@@ -121,7 +121,7 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12">
+    <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12" data-testid="reset-password-page">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
@@ -130,10 +130,10 @@ function ResetPasswordContent() {
           <CardTitle className="text-2xl font-bold">Reset your password</CardTitle>
           <CardDescription>Enter your new password below.</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} data-testid="reset-password-form">
           <CardContent className="space-y-4">
             {error && (
-              <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 rounded-md">
+              <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 rounded-md" data-testid="reset-password-error">
                 <AlertCircle className="h-4 w-4" />
                 {error}
               </div>
@@ -148,6 +148,7 @@ function ResetPasswordContent() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={!token}
+                data-testid="reset-password-input"
               />
             </div>
             <div className="space-y-2">
@@ -160,16 +161,17 @@ function ResetPasswordContent() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={!token}
+                data-testid="reset-password-confirm-input"
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <Button className="w-full" type="submit" disabled={isLoading || !token}>
+            <Button className="w-full" type="submit" disabled={isLoading || !token} data-testid="reset-password-submit-btn">
               {isLoading ? "Resetting..." : "Reset Password"}
             </Button>
             <div className="mt-4 text-center text-sm">
               Remember your password?{" "}
-              <Link href="/sign-in" className="text-primary hover:underline">
+              <Link href="/sign-in" className="text-primary hover:underline" data-testid="reset-password-signin-link">
                 Sign in
               </Link>
             </div>

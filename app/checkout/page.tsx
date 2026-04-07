@@ -458,11 +458,11 @@ function CheckoutContent() {
                 />
                 <Label htmlFor="terms" className="text-sm">
                   I agree to the{" "}
-                  <Link href="/terms" className="text-primary hover:underline">
+                  <Link href="/terms" className="text-primary hover:underline" data-testid="checkout-terms-link">
                     Terms and Conditions
                   </Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="text-primary hover:underline">
+                  <Link href="/privacy" className="text-primary hover:underline" data-testid="checkout-privacy-link">
                     Privacy Policy
                   </Link>
                 </Label>

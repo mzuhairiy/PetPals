@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 
 export default function ContactPage() {
   return (
-    <div className="container px-4 py-12">
+    <div className="container px-4 py-12" data-testid="contact-page">
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold mb-2">Contact Us</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -18,34 +18,34 @@ export default function ContactPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         <div>
           <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
-          <form className="space-y-6">
+          <form className="space-y-6" data-testid="contact-form">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" required />
+                <Input id="firstName" required data-testid="contact-first-name-input" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" required />
+                <Input id="lastName" required data-testid="contact-last-name-input" />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required />
+              <Input id="email" type="email" required data-testid="contact-email-input" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" />
+              <Input id="phone" type="tel" data-testid="contact-phone-input" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="subject">Subject</Label>
-              <Input id="subject" required />
+              <Input id="subject" required data-testid="contact-subject-input" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="message">Message</Label>
-              <Textarea id="message" rows={5} required />
+              <Textarea id="message" rows={5} required data-testid="contact-message-input" />
             </div>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" data-testid="contact-submit-btn">
               Send Message
             </Button>
           </form>

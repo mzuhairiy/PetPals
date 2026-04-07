@@ -73,7 +73,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12">
+    <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12" data-testid="signin-page">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
@@ -82,7 +82,7 @@ export default function SignInPage() {
           <CardTitle className="text-2xl font-bold">Sign in to your account</CardTitle>
           <CardDescription>Enter your email and password to access your account</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate data-testid="signin-form">
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -93,15 +93,16 @@ export default function SignInPage() {
                 {...register("email")}
                 onBlur={() => trigger("email")}
                 className={errors.email ? "border-red-500" : ""}
+                data-testid="signin-email-input"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs">{errors.email.message}</p>
+                <p className="text-red-500 text-xs" data-testid="signin-email-error">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                <Link href="/forgot-password" className="text-sm text-primary hover:underline" data-testid="signin-forgot-password-link">
                   Forgot password?
                 </Link>
               </div>
@@ -111,9 +112,10 @@ export default function SignInPage() {
                 {...register("password")}
                 onBlur={() => trigger("password")}
                 className={errors.password ? "border-red-500" : ""}
+                data-testid="signin-password-input"
               />
               {errors.password && (
-                <p className="text-red-500 text-xs">{errors.password.message}</p>
+                <p className="text-red-500 text-xs" data-testid="signin-password-error">{errors.password.message}</p>
               )}
             </div>
             <div className="flex items-center space-x-2">
@@ -122,6 +124,7 @@ export default function SignInPage() {
                 id="remember"
                 {...register("remember")}
                 className="rounded border-gray-300"
+                data-testid="signin-remember-checkbox"
               />
               <Label htmlFor="remember" className="text-sm font-normal">
                 Remember me
@@ -129,7 +132,7 @@ export default function SignInPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <Button className="w-full" type="submit" disabled={isLoading}>
+            <Button className="w-full" type="submit" disabled={isLoading} data-testid="signin-submit-btn">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -141,7 +144,7 @@ export default function SignInPage() {
             </Button>
             <div className="mt-4 text-center text-sm">
               Don't have an account?{" "}
-              <Link href="/sign-up" className="text-primary hover:underline">
+              <Link href="/sign-up" className="text-primary hover:underline" data-testid="signin-signup-link">
                 Sign up
               </Link>
             </div>
@@ -154,10 +157,10 @@ export default function SignInPage() {
               </div>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-4">
-              <Button variant="outline" type="button">
+              <Button variant="outline" type="button" data-testid="signin-google-btn">
                 Google
               </Button>
-              <Button variant="outline" type="button">
+              <Button variant="outline" type="button" data-testid="signin-facebook-btn">
                 Facebook
               </Button>
             </div>

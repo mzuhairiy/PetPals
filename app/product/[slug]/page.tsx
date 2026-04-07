@@ -33,7 +33,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .slice(0, 4);
 
   return (
-    <div className="container px-4 py-8 md:py-12">
+    <div className="container px-4 py-8 md:py-12" data-testid="product-detail-page">
       <div className="flex flex-col md:flex-row gap-8 lg:gap-16">
         {/* Product Images */}
         <div className="md:w-1/2">
@@ -130,16 +130,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </div>
 
       {/* Product Tabs */}
-      <div className="mt-16">
+      <div className="mt-16" data-testid="product-tabs">
         <Tabs defaultValue="description">
           <TabsList className="w-full justify-start border-b rounded-none h-auto p-0">
-            <TabsTrigger value="description" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3">
+            <TabsTrigger value="description" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3" data-testid="product-tab-description">
               Description
             </TabsTrigger>
-            <TabsTrigger value="details" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3">
+            <TabsTrigger value="details" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3" data-testid="product-tab-details">
               Nutritional Details
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3">
+            <TabsTrigger value="reviews" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3" data-testid="product-tab-reviews">
               Reviews ({product.reviewCount})
             </TabsTrigger>
           </TabsList>
@@ -199,7 +199,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     <span className="ml-2 text-sm text-muted-foreground">Based on {product.reviewCount} reviews</span>
                   </div>
                 </div>
-                <Button>Write a Review</Button>
+                <Button data-testid="product-write-review-btn">Write a Review</Button>
               </div>
 
               <div className="space-y-6">
@@ -248,7 +248,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </div>
 
       {/* Related Products */}
-      <div className="mt-16">
+      <div className="mt-16" data-testid="related-products-section">
         <h2 className="text-2xl font-bold mb-6">Related Products</h2>
         <RelatedProducts products={relatedProducts} />
       </div>

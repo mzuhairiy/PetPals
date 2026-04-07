@@ -3,7 +3,7 @@ import { Shield } from "lucide-react"
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="container px-4 py-12">
+    <div className="container px-4 py-12" data-testid="privacy-page">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
@@ -140,11 +140,11 @@ export default function PrivacyPolicyPage() {
         </div>
 
         <div className="mt-12 text-center">
-          <Link href="/contact" className="text-primary hover:underline">
+          <Link href="/contact" className="text-primary hover:underline" data-testid="privacy-contact-link">
             Contact Us
           </Link>
           {" | "}
-          <Link href="/terms" className="text-primary hover:underline">
+          <Link href="/terms" className="text-primary hover:underline" data-testid="privacy-terms-link">
             Terms and Conditions
           </Link>
         </div>

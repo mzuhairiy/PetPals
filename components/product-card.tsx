@@ -36,7 +36,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
   };
 
   return (
-    <Link href={`/product/${product.slug}`}>
+    <Link href={`/product/${product.slug}`} data-testid={`product-card-link-${product.id}`}>
       <Card
         data-testid={`product-card-${product.id}`}
         className={cn('overflow-hidden transition-all duration-200 h-full', isHovered && 'shadow-md transform translate-y-[-4px]')}

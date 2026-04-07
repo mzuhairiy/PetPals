@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12">
+      <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12" data-testid="forgot-password-success-page">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
             <p className="mt-2">The link will expire in 1 hour.</p>
           </CardContent>
           <CardFooter className="justify-center">
-            <Link href="/sign-in">
+            <Link href="/sign-in" data-testid="forgot-password-success-signin-link">
               <Button variant="link">Back to Sign In</Button>
             </Link>
           </CardFooter>
@@ -92,7 +92,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12">
+    <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12" data-testid="forgot-password-page">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
@@ -101,7 +101,7 @@ export default function ForgotPasswordPage() {
           <CardTitle className="text-2xl font-bold">Forgot your password?</CardTitle>
           <CardDescription>Enter your email to receive a password reset link.</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate data-testid="forgot-password-form">
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -112,19 +112,20 @@ export default function ForgotPasswordPage() {
                 {...register("email")}
                 onBlur={() => trigger("email")}
                 className={errors.email ? "border-red-500" : ""}
+                data-testid="forgot-password-email-input"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs">{errors.email.message}</p>
+                <p className="text-red-500 text-xs" data-testid="forgot-password-email-error">{errors.email.message}</p>
               )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <Button className="w-full" type="submit" disabled={isLoading}>
+            <Button className="w-full" type="submit" disabled={isLoading} data-testid="forgot-password-submit-btn">
               {isLoading ? "Sending..." : "Send Reset Link"}
             </Button>
             <div className="mt-4 text-center text-sm">
               Remember your password?{" "}
-              <Link href="/sign-in" className="text-primary hover:underline">
+              <Link href="/sign-in" className="text-primary hover:underline" data-testid="forgot-password-signin-link">
                 Sign in
               </Link>
             </div>

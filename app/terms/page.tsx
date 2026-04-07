@@ -3,7 +3,7 @@ import { FileText } from "lucide-react"
 
 export default function TermsPage() {
   return (
-    <div className="container px-4 py-12">
+    <div className="container px-4 py-12" data-testid="terms-page">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <FileText className="h-12 w-12 text-primary mx-auto mb-4" />
@@ -144,11 +144,11 @@ export default function TermsPage() {
         </div>
 
         <div className="mt-12 text-center">
-          <Link href="/contact" className="text-primary hover:underline">
+          <Link href="/contact" className="text-primary hover:underline" data-testid="terms-contact-link">
             Contact Us
           </Link>
           {" | "}
-          <Link href="/privacy" className="text-primary hover:underline">
+          <Link href="/privacy" className="text-primary hover:underline" data-testid="terms-privacy-link">
             Privacy Policy
           </Link>
         </div>

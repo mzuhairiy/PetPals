@@ -71,7 +71,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12">
+    <div className="container flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12" data-testid="signup-page">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
@@ -80,7 +80,7 @@ export default function SignUpPage() {
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>Enter your information to create an account</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate data-testid="signup-form">
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
@@ -90,9 +90,10 @@ export default function SignUpPage() {
                 {...register("name")}
                 onBlur={() => trigger("name")}
                 className={errors.name ? "border-red-500" : ""}
+                data-testid="signup-name-input"
               />
               {errors.name && (
-                <p className="text-red-500 text-xs">{errors.name.message}</p>
+                <p className="text-red-500 text-xs" data-testid="signup-name-error">{errors.name.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -104,9 +105,10 @@ export default function SignUpPage() {
                 {...register("email")}
                 onBlur={() => trigger("email")}
                 className={errors.email ? "border-red-500" : ""}
+                data-testid="signup-email-input"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs">{errors.email.message}</p>
+                <p className="text-red-500 text-xs" data-testid="signup-email-error">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -117,9 +119,10 @@ export default function SignUpPage() {
                 {...register("password")}
                 onBlur={() => trigger("password")}
                 className={errors.password ? "border-red-500" : ""}
+                data-testid="signup-password-input"
               />
               {errors.password && (
-                <p className="text-red-500 text-xs">{errors.password.message}</p>
+                <p className="text-red-500 text-xs" data-testid="signup-password-error">{errors.password.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -130,9 +133,10 @@ export default function SignUpPage() {
                 {...register("confirmPassword")}
                 onBlur={() => trigger("confirmPassword")}
                 className={errors.confirmPassword ? "border-red-500" : ""}
+                data-testid="signup-confirm-password-input"
               />
               {errors.confirmPassword && (
-                <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>
+                <p className="text-red-500 text-xs" data-testid="signup-confirm-password-error">{errors.confirmPassword.message}</p>
               )}
             </div>
             <div className="flex items-center space-x-2">
@@ -141,24 +145,25 @@ export default function SignUpPage() {
                 id="terms"
                 {...register("terms")}
                 className="rounded border-gray-300"
+                data-testid="signup-terms-checkbox"
               />
               <Label htmlFor="terms" className="text-sm font-normal">
                 I agree to the{" "}
-                <Link href="/terms" className="text-primary hover:underline">
+                <Link href="/terms" className="text-primary hover:underline" data-testid="signup-terms-link">
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link href="/privacy" className="text-primary hover:underline">
+                <Link href="/privacy" className="text-primary hover:underline" data-testid="signup-privacy-link">
                   Privacy Policy
                 </Link>
               </Label>
             </div>
             {errors.terms && (
-              <p className="text-red-500 text-xs">{errors.terms.message}</p>
+              <p className="text-red-500 text-xs" data-testid="signup-terms-error">{errors.terms.message}</p>
             )}
           </CardContent>
           <CardFooter className="flex flex-col">
-            <Button className="w-full" type="submit" disabled={isLoading}>
+            <Button className="w-full" type="submit" disabled={isLoading} data-testid="signup-submit-btn">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -170,7 +175,7 @@ export default function SignUpPage() {
             </Button>
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}
-              <Link href="/sign-in" className="text-primary hover:underline">
+              <Link href="/sign-in" className="text-primary hover:underline" data-testid="signup-signin-link">
                 Sign in
               </Link>
             </div>
@@ -183,10 +188,10 @@ export default function SignUpPage() {
               </div>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-4">
-              <Button variant="outline" type="button">
+              <Button variant="outline" type="button" data-testid="signup-google-btn">
                 Google
               </Button>
-              <Button variant="outline" type="button">
+              <Button variant="outline" type="button" data-testid="signup-facebook-btn">
                 Facebook
               </Button>
             </div>

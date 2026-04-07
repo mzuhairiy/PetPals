@@ -51,8 +51,8 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const products = response.products
 
   return (
-    <div className="container px-4 py-8 md:py-12">
-      <h1 className="text-3xl font-bold mb-8">
+    <div className="container px-4 py-8 md:py-12" data-testid="shop-page">
+      <h1 className="text-3xl font-bold mb-8" data-testid="shop-page-title">
         {params.search 
           ? `Search Results for "${params.search}"` 
           : params.category 

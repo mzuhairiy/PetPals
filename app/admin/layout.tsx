@@ -63,12 +63,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/admin" className="flex items-center gap-2">
+            <Link href="/admin" className="flex items-center gap-2" data-testid="admin-logo-link">
               <PawPrint className="h-6 w-6 text-primary" />
               <span className="font-bold text-lg text-gray-900">PetPals Admin</span>
             </Link>
             
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1" data-testid="admin-nav">
               {navItems.map((item) => {
                 const isActive = pathname === item.href
                 return (
@@ -81,6 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         ? "bg-primary/10 text-primary"
                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                     )}
+                    data-testid={`admin-nav-${item.title.toLowerCase()}-link`}
                   >
                     <item.icon className="h-4 w-4" />
                     {item.title}
@@ -97,6 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               size="sm"
               className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               onClick={handleLogout}
+              data-testid="admin-logout-btn"
             >
               <LogOut className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Logout</span>

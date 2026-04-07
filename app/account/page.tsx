@@ -119,11 +119,12 @@ export default function AccountPage() {
         variant="ghost"
         onClick={handleGoBack}
         className="self-start mb-4"
+        data-testid="account-back-btn"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
       </Button>
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md" data-testid="account-card">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold flex items-center gap-2">
             <User className="h-6 w-6" />
@@ -131,7 +132,7 @@ export default function AccountPage() {
           </CardTitle>
           <CardDescription>Manage your account settings</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} data-testid="account-form">
           <CardContent className="space-y-6">
             {/* Name Field - Editable */}
             <div className="space-y-2">
@@ -147,6 +148,7 @@ export default function AccountPage() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 disabled={isLoading}
+                data-testid="account-name-input"
               />
             </div>
 
@@ -162,6 +164,7 @@ export default function AccountPage() {
                 value={user.email}
                 disabled
                 className="bg-muted cursor-not-allowed"
+                data-testid="account-email-input"
               />
               <p className="text-xs text-muted-foreground">Email cannot be changed</p>
             </div>
@@ -178,6 +181,7 @@ export default function AccountPage() {
                 value={user.role === "admin" ? "Administrator" : "Customer"}
                 disabled
                 className="bg-muted cursor-not-allowed"
+                data-testid="account-role-input"
               />
             </div>
           </CardContent>
@@ -187,6 +191,7 @@ export default function AccountPage() {
               className="w-full" 
               type="submit" 
               disabled={isLoading || !name.trim() || name.trim() === user.name}
+              data-testid="account-save-btn"
             >
               {isLoading ? (
                 <>
@@ -207,6 +212,7 @@ export default function AccountPage() {
               type="button"
               onClick={handleLogoutAll}
               disabled={isLoggingOut}
+              data-testid="account-logout-all-btn"
             >
               {isLoggingOut ? (
                 <>

@@ -234,7 +234,7 @@ export default function Header() {
               )}
 
               {isAuthenticated && (
-                <Link href="/wishlist">
+                <Link href="/wishlist" data-testid="header-wishlist-link">
                   <Button variant="ghost" size="icon" data-testid="header-wishlist-btn">
                     <Heart className="h-5 w-5" />
                     <span className="sr-only">Wishlist</span>
@@ -252,40 +252,40 @@ export default function Header() {
               </>
             ) : isAuthenticated ? (
               <>
-                <Link href="/orders">
-                  <Button variant="ghost" size="sm" className="mr-1">
+                <Link href="/orders" data-testid="header-orders-link">
+                  <Button variant="ghost" size="sm" className="mr-1" data-testid="header-orders-btn">
                     <Package className="mr-2 h-4 w-4" />
                     Orders
                   </Button>
                 </Link>
                 {user?.role === "ADMIN" && (
-                  <Link href="/admin">
-                    <Button variant="ghost" size="sm" className="mr-1">
+                  <Link href="/admin" data-testid="header-admin-link">
+                    <Button variant="ghost" size="sm" className="mr-1" data-testid="header-admin-btn">
                       <Settings className="mr-2 h-4 w-4" />
                       Admin
                     </Button>
                   </Link>
                 )}
-                <Link href="/account">
-                  <Button variant="ghost" size="sm" className="mr-1">
+                <Link href="/account" data-testid="header-account-link">
+                  <Button variant="ghost" size="sm" className="mr-1" data-testid="header-account-btn">
                     <User className="mr-2 h-4 w-4" />
                     {user?.name}
                   </Button>
                 </Link>
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <Button variant="ghost" size="sm" onClick={handleLogout} data-testid="header-signout-btn">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </Button>
               </>
             ) : (
               <>
-                <Link href="/sign-in">
-                  <Button variant="ghost" size="sm" className="mr-1">
+                <Link href="/sign-in" data-testid="header-signin-link">
+                  <Button variant="ghost" size="sm" className="mr-1" data-testid="header-signin-btn">
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/sign-up">
-                  <Button variant="default" size="sm">
+                <Link href="/sign-up" data-testid="header-signup-link">
+                  <Button variant="default" size="sm" data-testid="header-signup-btn">
                     Sign Up
                   </Button>
                 </Link>
@@ -294,13 +294,13 @@ export default function Header() {
           </div>
           <div className="md:hidden">
             {isAuthenticated ? (
-              <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <Button variant="ghost" size="icon" onClick={handleLogout} data-testid="header-mobile-signout-btn">
                 <LogOut className="h-5 w-5" />
                 <span className="sr-only">Sign Out</span>
               </Button>
             ) : (
-              <Link href="/sign-in">
-                <Button variant="ghost" size="icon">
+              <Link href="/sign-in" data-testid="header-mobile-signin-link">
+                <Button variant="ghost" size="icon" data-testid="header-mobile-signin-btn">
                   <User className="h-5 w-5" />
                   <span className="sr-only">Account</span>
                 </Button>
@@ -311,7 +311,7 @@ export default function Header() {
           {authLoading ? (
             <Skeleton className="h-9 w-9" />
           ) : (
-            <Link href="/cart">
+            <Link href="/cart" data-testid="header-cart-link">
               <Button variant="ghost" size="icon" className="relative" data-testid="header-cart-btn">
                 <ShoppingCart className="h-5 w-5" />
                 {totalItems > 0 && (
@@ -334,6 +334,7 @@ export default function Header() {
               href="/"
               className="flex items-center gap-2 text-lg font-semibold"
               onClick={() => setIsMenuOpen(false)}
+              data-testid="mobile-nav-home-link"
             >
               Home
             </Link>
@@ -341,6 +342,7 @@ export default function Header() {
               href="/shop"
               className="flex items-center gap-2 text-lg font-semibold"
               onClick={() => setIsMenuOpen(false)}
+              data-testid="mobile-nav-shop-link"
             >
               Shop
             </Link>
@@ -348,6 +350,7 @@ export default function Header() {
               href="/shop?pet=cat"
               className="flex items-center gap-2 text-lg font-semibold"
               onClick={() => setIsMenuOpen(false)}
+              data-testid="mobile-nav-cats-link"
             >
               <Cat className="h-5 w-5" /> Cats
             </Link>
@@ -355,6 +358,7 @@ export default function Header() {
               href="/shop?pet=dog"
               className="flex items-center gap-2 text-lg font-semibold"
               onClick={() => setIsMenuOpen(false)}
+              data-testid="mobile-nav-dogs-link"
             >
               <Dog className="h-5 w-5" /> Dogs
             </Link>
@@ -362,6 +366,7 @@ export default function Header() {
               href="/about"
               className="flex items-center gap-2 text-lg font-semibold"
               onClick={() => setIsMenuOpen(false)}
+              data-testid="mobile-nav-about-link"
             >
               About Us
             </Link>
@@ -371,6 +376,7 @@ export default function Header() {
                   href="/orders"
                   className="flex items-center gap-2 text-lg font-semibold"
                   onClick={() => setIsMenuOpen(false)}
+                  data-testid="mobile-nav-orders-link"
                 >
                   <Package className="h-5 w-5" />
                   Orders
@@ -380,6 +386,7 @@ export default function Header() {
                     href="/admin"
                     className="flex items-center gap-2 text-lg font-semibold"
                     onClick={() => setIsMenuOpen(false)}
+                    data-testid="mobile-nav-admin-link"
                   >
                     <Settings className="h-5 w-5" />
                     Admin
@@ -389,6 +396,7 @@ export default function Header() {
                   href="/account"
                   className="flex items-center gap-2 text-lg font-semibold"
                   onClick={() => setIsMenuOpen(false)}
+                  data-testid="mobile-nav-account-link"
                 >
                   <User className="h-5 w-5" />
                   {user?.name}
@@ -399,6 +407,7 @@ export default function Header() {
                     setIsMenuOpen(false)
                   }}
                   className="flex items-center gap-2 text-lg font-semibold"
+                  data-testid="mobile-nav-signout-btn"
                 >
                   <LogOut className="h-5 w-5" />
                   Sign Out
@@ -410,6 +419,7 @@ export default function Header() {
                   href="/sign-in"
                   className="flex items-center gap-2 text-lg font-semibold"
                   onClick={() => setIsMenuOpen(false)}
+                  data-testid="mobile-nav-signin-link"
                 >
                   Sign In
                 </Link>
@@ -417,6 +427,7 @@ export default function Header() {
                   href="/sign-up"
                   className="flex items-center gap-2 text-lg font-semibold"
                   onClick={() => setIsMenuOpen(false)}
+                  data-testid="mobile-nav-signup-link"
                 >
                   Sign Up
                 </Link>

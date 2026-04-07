@@ -198,11 +198,11 @@ export default function ShopFilters() {
   const hasActiveFilters = category || pet || sort || priceRange[0] > 0 || priceRange[1] < priceRangeMax
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="shop-filters">
       {hasActiveFilters && (
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium">Active Filters</h3>
-          <Button variant="ghost" size="sm" onClick={resetFilters} className="h-8 text-xs">
+          <Button variant="ghost" size="sm" onClick={resetFilters} className="h-8 text-xs" data-testid="shop-filters-clear-all-btn">
             <X className="h-3 w-3 mr-1" />
             Clear All
           </Button>
@@ -257,6 +257,7 @@ export default function ShopFilters() {
                   id="category-toys"
                   checked={category === "toys"}
                   onCheckedChange={() => setCategory(category === "toys" ? "" : "toys")}
+                  data-testid="filter-category-toys"
                 />
                 <Label htmlFor="category-toys">Toys</Label>
               </div>
@@ -265,6 +266,7 @@ export default function ShopFilters() {
                   id="category-food"
                   checked={category === "food"}
                   onCheckedChange={() => setCategory(category === "food" ? "" : "food")}
+                  data-testid="filter-category-food"
                 />
                 <Label htmlFor="category-food">Food</Label>
               </div>
@@ -273,6 +275,7 @@ export default function ShopFilters() {
                   id="category-supplements"
                   checked={category === "supplements"}
                   onCheckedChange={() => setCategory(category === "supplements" ? "" : "supplements")}
+                  data-testid="filter-category-supplements"
                 />
                 <Label htmlFor="category-supplements">Supplements</Label>
               </div>
@@ -289,6 +292,7 @@ export default function ShopFilters() {
                   id="pet-cat"
                   checked={pet === "cat"}
                   onCheckedChange={() => setPet(pet === "cat" ? "" : "cat")}
+                  data-testid="filter-pet-cat"
                 />
                 <Label htmlFor="pet-cat" className="flex items-center">
                   <Cat className="h-4 w-4 mr-1" /> Cats
@@ -299,6 +303,7 @@ export default function ShopFilters() {
                   id="pet-dog"
                   checked={pet === "dog"}
                   onCheckedChange={() => setPet(pet === "dog" ? "" : "dog")}
+                  data-testid="filter-pet-dog"
                 />
                 <Label htmlFor="pet-dog" className="flex items-center">
                   <Dog className="h-4 w-4 mr-1" /> Dogs
@@ -365,6 +370,7 @@ export default function ShopFilters() {
                   id="sort-price-asc"
                   checked={sort === "price_asc"}
                   onCheckedChange={() => setSort(sort === "price_asc" ? "" : "price_asc")}
+                  data-testid="filter-sort-price-asc"
                 />
                 <Label htmlFor="sort-price-asc">Price: Low to High</Label>
               </div>
@@ -373,6 +379,7 @@ export default function ShopFilters() {
                   id="sort-price-desc"
                   checked={sort === "price_desc"}
                   onCheckedChange={() => setSort(sort === "price_desc" ? "" : "price_desc")}
+                  data-testid="filter-sort-price-desc"
                 />
                 <Label htmlFor="sort-price-desc">Price: High to Low</Label>
               </div>
@@ -381,6 +388,7 @@ export default function ShopFilters() {
                   id="sort-rating"
                   checked={sort === "rating"}
                   onCheckedChange={() => setSort(sort === "rating" ? "" : "rating")}
+                  data-testid="filter-sort-rating"
                 />
                 <Label htmlFor="sort-rating">Highest Rated</Label>
               </div>
@@ -389,6 +397,7 @@ export default function ShopFilters() {
                   id="sort-newest"
                   checked={sort === "newest"}
                   onCheckedChange={() => setSort(sort === "newest" ? "" : "newest")}
+                  data-testid="filter-sort-newest"
                 />
                 <Label htmlFor="sort-newest">Newest First</Label>
               </div>

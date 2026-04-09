@@ -223,8 +223,7 @@ jobs:
           token: ${{ secrets.E2E_REPO_PAT }}
           repository: mzuhairiy/petpals-auto-test
           event-type: run-e2e
-          client-payload: |
-            {"target_url":"https://staging.petpals-demo.shop","commit_sha":"${{ github.sha }}","source_repo":"${{ github.repository }}","run_id":"${{ github.run_id }}"}
+          client-payload: client-payload: '{"target_url":"https://staging.petpals-demo.shop","commit_sha":"${{ github.sha }}","source_repo":"${{ github.repository }}","run_id":"${{ github.run_id }}"}'
 
       - name: Wait for E2E results (commit status: e2e/playwright)
         uses: actions/github-script@v7

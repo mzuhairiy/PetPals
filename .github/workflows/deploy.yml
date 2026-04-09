@@ -212,9 +212,28 @@ jobs:
             # Clean up old images
             docker image prune -f
 
+  # ─── Stage 3b: Trigger E2E tests in separate repo ───
+  e2e-tests:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger E2E repo workflow (repository_dispatch)
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.E2E_REPO_PAT }}
+          repository: mzuhairiy/petpals-auto-test
+          event-type: run-e2e
+          client-payload: |
+            {
+              "target_url": "https://staging.petpals-demo.shop",
+              "commit_sha": "${{ github.sha }}",
+              "source_repo": "${{ github.repository }}",
+              "run_id": "${{ github.run_id }}"
+            }
+
   # ─── Stage 4: Deploy to Production (requires approval) ───
   deploy-production:
-    needs: deploy-staging
+    needs: [deploy-staging, e2e-tests]
     runs-on: ubuntu-latest
     environment: production
     permissions:

@@ -232,52 +232,56 @@ jobs:
             }
 
       - name: Wait for E2E results (commit status: e2e/playwright)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OWNER: ${{ github.repository_owner }}
-          REPO: ${{ github.event.repository.name }}
-          SHA: ${{ github.sha }}
-          CONTEXT: e2e/playwright
-        run: |
-          set -euo pipefail
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = context.sha;
+            const desiredContext = 'e2e/playwright';
 
-          echo "Polling commit status '$CONTEXT' for $OWNER/$REPO@$SHA"
+            const attempts = 60;
+            const sleepMs = 30_000;
 
-          attempts=60
-          sleep_seconds=30
+            const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-          for i in $(seq 1 $attempts); do
-            echo "--- Poll attempt $i/$attempts ---"
+            core.info(`Polling commit status '${desiredContext}' for ${owner}/${repo}@${sha}`);
 
-            json=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/$OWNER/$REPO/commits/$SHA/status")
+            for (let i = 1; i <= attempts; i++) {
+              core.info(`--- Poll attempt ${i}/${attempts} ---`);
 
-            state=$(echo "$json" | jq -r --arg ctx "$CONTEXT" '.statuses[] | select(.context == $ctx) | .state' | head -n 1 || true)
+              const res = await github.rest.repos.getCombinedStatusForRef({
+                owner,
+                repo,
+                ref: sha,
+              });
 
-            if [ -z "${state:-}" ] || [ "$state" = "null" ]; then
-              echo "Status context '$CONTEXT' not found yet (still waiting...)"
-            else
-              echo "Current state for '$CONTEXT': $state"
+              const statuses = res.data.statuses || [];
+              const match = statuses.find((s) => s.context === desiredContext);
 
-              if [ "$state" = "success" ]; then
-                echo "E2E passed. Proceeding."
-                exit 0
-              fi
+              if (!match) {
+                core.info(`Status context '${desiredContext}' not found yet (still waiting...)`);
+              } else {
+                core.info(`Current state for '${desiredContext}': ${match.state}`);
 
-              if [ "$state" = "failure" ] || [ "$state" = "error" ]; then
-                echo "E2E failed ($state). Blocking production."
-                exit 1
-              fi
+                if (match.state === 'success') {
+                  core.info('E2E passed. Proceeding.');
+                  return;
+                }
 
-              echo "E2E still running ($state)."
-            fi
+                if (match.state === 'failure' || match.state === 'error') {
+                  core.setFailed(`E2E failed (${match.state}). Blocking production.`);
+                  return;
+                }
 
-            sleep $sleep_seconds
-          done
+                core.info(`E2E still running (${match.state}).`);
+              }
 
-          echo "Timed out waiting for E2E status '$CONTEXT' after $((attempts * sleep_seconds)) seconds."
-          exit 1
+              await sleep(sleepMs);
+            }
+
+            core.setFailed(`Timed out waiting for E2E status '${desiredContext}' after ${attempts * (sleepMs / 1000)} seconds.`);
 
   # ─── Stage 4: Deploy to Production (requires approval) ───
   deploy-production:

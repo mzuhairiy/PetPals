@@ -242,7 +242,7 @@ jobs:
             const desiredContext = 'e2e/playwright';
 
             const attempts = 60;
-            const sleepMs = 30_000;
+            const sleepMs = 30000;
 
             const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

@@ -231,6 +231,54 @@ jobs:
               "run_id": "${{ github.run_id }}"
             }
 
+      - name: Wait for E2E results (commit status: e2e/playwright)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          SHA: ${{ github.sha }}
+          CONTEXT: e2e/playwright
+        run: |
+          set -euo pipefail
+
+          echo "Polling commit status '$CONTEXT' for $OWNER/$REPO@$SHA"
+
+          attempts=60
+          sleep_seconds=30
+
+          for i in $(seq 1 $attempts); do
+            echo "--- Poll attempt $i/$attempts ---"
+
+            json=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$OWNER/$REPO/commits/$SHA/status")
+
+            state=$(echo "$json" | jq -r --arg ctx "$CONTEXT" '.statuses[] | select(.context == $ctx) | .state' | head -n 1 || true)
+
+            if [ -z "${state:-}" ] || [ "$state" = "null" ]; then
+              echo "Status context '$CONTEXT' not found yet (still waiting...)"
+            else
+              echo "Current state for '$CONTEXT': $state"
+
+              if [ "$state" = "success" ]; then
+                echo "E2E passed. Proceeding."
+                exit 0
+              fi
+
+              if [ "$state" = "failure" ] || [ "$state" = "error" ]; then
+                echo "E2E failed ($state). Blocking production."
+                exit 1
+              fi
+
+              echo "E2E still running ($state)."
+            fi
+
+            sleep $sleep_seconds
+          done
+
+          echo "Timed out waiting for E2E status '$CONTEXT' after $((attempts * sleep_seconds)) seconds."
+          exit 1
+
   # ─── Stage 4: Deploy to Production (requires approval) ───
   deploy-production:
     needs: [deploy-staging, e2e-tests]

@@ -236,8 +236,13 @@ jobs:
 
             const attempts = 60;
             const sleepMs = 30000;
+            const initialWaitMs = 30000;
 
             const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+            const dispatchedAt = new Date().toISOString();
+            core.info(`Dispatch time: ${dispatchedAt}`);
+            core.info(`Waiting ${initialWaitMs / 1000}s for E2E repo to start and set pending status...`);
+            await sleep(initialWaitMs);
 
             core.info(`Polling commit status '${desiredContext}' for ${owner}/${repo}@${sha}`);
 
@@ -251,12 +256,14 @@ jobs:
               });
 
               const statuses = res.data.statuses || [];
-              const match = statuses.find((s) => s.context === desiredContext);
+              const match = statuses.find(
+                (s) => s.context === desiredContext && s.updated_at >= dispatchedAt
+              );
 
               if (!match) {
-                core.info(`Status context '${desiredContext}' not found yet (still waiting...)`);
+                core.info(`No fresh status for '${desiredContext}' yet (still waiting...)`);
               } else {
-                core.info(`Current state for '${desiredContext}': ${match.state}`);
+                core.info(`Current state for '${desiredContext}': ${match.state} (updated: ${match.updated_at})`);
 
                 if (match.state === 'success') {
                   core.info('E2E passed. Proceeding.');
@@ -274,7 +281,7 @@ jobs:
               await sleep(sleepMs);
             }
 
-            core.setFailed(`Timed out waiting for E2E status '${desiredContext}' after ${attempts * (sleepMs / 1000)} seconds.`);
+            core.setFailed(`Timed out waiting for E2E status '${desiredContext}' after ${(attempts * sleepMs + initialWaitMs) / 1000} seconds.`);
 
   # ─── Stage 4: Deploy to Production (requires approval) ───
   deploy-production:

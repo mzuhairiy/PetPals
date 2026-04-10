@@ -13,7 +13,7 @@ import LayoutClient from "./layout-client"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "PetPals - What your pet needs, when they need it",
+  title: "PetPals - What your pet needs, when they need it.",
   description: "Premium pet products for cats and dogs with same-day delivery",
     generator: 'v0.dev'
 }

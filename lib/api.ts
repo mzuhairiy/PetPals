@@ -1,6 +1,6 @@
 import { products as staticProducts } from "./products"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5005"
 
 // Flag to track if we're attempting a refresh
 let isRefreshing = false

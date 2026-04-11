@@ -7,7 +7,7 @@ function requireEnv(key: string): string {
 }
 
 export const config = {
-  port: parseInt(process.env.PORT || '5000'),
+  port: parseInt(process.env.PORT || '5005'),
   nodeEnv: process.env.NODE_ENV || 'development',
   database: {
     url: requireEnv('DATABASE_URL')

@@ -12,7 +12,7 @@ import { Cat, Dog, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { formatPrice } from "@/lib/utils"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5005"
 const DEBOUNCE_DELAY = 500
 
 export default function ShopFilters() {

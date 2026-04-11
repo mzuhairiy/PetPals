@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useCart } from "@/components/cart-provider"
 import { useToast } from "@/components/ui/use-toast"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5005"
 const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || ""
 
 interface OrderData {

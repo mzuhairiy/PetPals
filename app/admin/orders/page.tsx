@@ -109,11 +109,10 @@ export default function AdminOrdersPage() {
   const handleSyncStatus = async (orderId: string) => {
     setIsSyncing(orderId)
     try {
-      const result = await syncShipmentStatus(orderId)
-      toast({ title: "Status synced", description: result.message || `Order status: ${result.orderStatus}`, dataTestId: "toast-admin-shipment-synced" })
+      await syncShipmentStatus(orderId)
       loadOrders()
     } catch (error) {
-      toast({ title: "Error", description: "Failed to sync shipment status", variant: "destructive", dataTestId: "toast-admin-shipment-sync-error" })
+      console.error("Failed to sync shipment status:", error)
     } finally {
       setIsSyncing(null)
     }

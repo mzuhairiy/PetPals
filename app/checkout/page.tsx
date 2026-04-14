@@ -58,7 +58,7 @@ export default function CheckoutPage() {
 }
 
 function CheckoutContent() {
-  const { cartItems } = useCart()
+  const { cartItems, clearCart } = useCart()
   const { token, isAuthenticated, user } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
@@ -66,15 +66,17 @@ function CheckoutContent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  // Check for success state from URL
+  // Check for success state from URL (also handles redirect back from Midtrans)
   useEffect(() => {
     const success = searchParams.get("success")
     if (success === "true") {
       setShowSuccess(true)
+      clearCart()
       // Clear the URL param
       router.replace("/checkout")
     }
-  }, [searchParams, router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   // Calculate default values from user
   const defaultValues: Partial<CheckoutFormData> = {

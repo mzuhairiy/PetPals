@@ -104,8 +104,18 @@ export async function createSnapTransaction(req: AuthRequest, res: Response) {
       phone: ''
     }
 
+    // Build callback URLs for Midtrans redirect mode
+    // After payment on Midtrans redirect page, user is sent back to our app
+    const frontendUrl = config.cors.origin[0] || 'http://localhost:3000'
+    const callbacks = {
+      finish: `${frontendUrl}/checkout?success=true`,
+      unfinish: `${frontendUrl}/checkout/${order.id}?status=unfinish`,
+      error: `${frontendUrl}/checkout/${order.id}?status=error`
+    }
+
     console.log("Calling Midtrans Snap API...")
     console.log("URL:", `${config.midtrans.getBaseUrl()}/snap/v1/transactions`)
+    console.log("Callback URLs:", callbacks)
 
     // Call Midtrans Snap API (correct endpoint for Snap)
     // With retry logic for transient network issues
@@ -128,7 +138,8 @@ export async function createSnapTransaction(req: AuthRequest, res: Response) {
           body: JSON.stringify({
             transaction_details: transactionDetails,
             item_details: itemDetails,
-            customer_details: customerDetails
+            customer_details: customerDetails,
+            callbacks
           })
         })
         // If successful, break out of retry loop

@@ -1,6 +1,8 @@
-import { products as staticProducts } from "./products"
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5005"
+const API_URL_CLIENT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5005"
+// Server-side (SSR) uses internal Docker network URL if available
+const API_URL_SERVER = process.env.API_URL_INTERNAL || API_URL_CLIENT
+// Pick the right URL based on whether we're on server or client
+const API_URL = typeof window === "undefined" ? API_URL_SERVER : API_URL_CLIENT
 
 // Flag to track if we're attempting a refresh
 let isRefreshing = false
@@ -118,7 +120,7 @@ export interface ProductsResponse {
   }
 }
 
-// Simple fetch that returns static data on any failure
+// Fetch products from API, return empty array on failure
 async function fetchFromAPI(url: string): Promise<ProductsResponse> {
   try {
     const response = await authFetch(url, {
@@ -127,7 +129,7 @@ async function fetchFromAPI(url: string): Promise<ProductsResponse> {
     
     if (!response.ok) {
       console.warn('API returned non-ok status:', response.status)
-      return { products: staticProducts }
+      return { products: [] }
     }
     
     const result = await response.json()
@@ -136,8 +138,8 @@ async function fetchFromAPI(url: string): Promise<ProductsResponse> {
       metadata: result.metadata
     }
   } catch (err) {
-    console.warn('API fetch failed, using static data:', err)
-    return { products: staticProducts }
+    console.warn('API fetch failed:', err)
+    return { products: [] }
   }
 }
 
@@ -164,14 +166,15 @@ export async function fetchProductById(id: string): Promise<any> {
     })
     
     if (!response.ok) {
-      return staticProducts.find(function(p) { return p.id === id })
+      console.warn('API returned non-ok status for product:', id)
+      return null
     }
     
     const result = await response.json()
     return result.data
   } catch (err) {
-    console.warn('API fetch failed, using static data:', err)
-    return staticProducts.find(function(p) { return p.id === id })
+    console.warn('API fetch failed for product:', id, err)
+    return null
   }
 }
 

@@ -19,32 +19,32 @@ export async function createOrder(req: AuthRequest, res: Response) {
     where: { id: { in: productIds } }
   })
 
-  // If products not found in DB, use fallback from frontend items
-  // This handles the case where static product IDs don't match DB UUIDs
   const productMap = new Map(products.map(p => [p.id, p]))
+
+  // Validate all products exist in the database
+  const missingProducts = productIds.filter(id => !productMap.has(id))
+  if (missingProducts.length > 0) {
+    throw new BadRequestError(`Products not found: ${missingProducts.join(', ')}. Please clear your cart and try again.`)
+  }
   
   // Check stock and calculate subtotal
   let subtotal = 0
   const orderItems: { productId: string; quantity: number; price: number; nameSnapshot: string }[] = []
 
   for (const item of items) {
-    const dbProduct = productMap.get(item.productId)
+    const dbProduct = productMap.get(item.productId)!
     
-    // Use DB product or fallback to frontend data
-    const productName = dbProduct?.name || `Product ${item.productId}`
-    const productPrice = dbProduct ? Number(dbProduct.price) : item.price || 0
-    const productStock = dbProduct?.stock || 999 // Allow if not in DB
-    
-    if (productStock < item.quantity) {
-      throw new ConflictError(`Insufficient stock for ${productName}`)
+    if (dbProduct.stock < item.quantity) {
+      throw new ConflictError(`Insufficient stock for ${dbProduct.name}`)
     }
     
+    const productPrice = Number(dbProduct.price)
     subtotal += productPrice * item.quantity
     orderItems.push({
       productId: item.productId,
       quantity: item.quantity,
       price: productPrice,
-      nameSnapshot: productName
+      nameSnapshot: dbProduct.name
     })
   }
 

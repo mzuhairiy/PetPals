@@ -28,6 +28,8 @@ services:
 
   frontend:
     image: ghcr.io/mzuhairiy/petpals-frontend:production
+    environment:
+      API_URL_INTERNAL: http://backend:5000
     ports:
       - "3200:3000"
     depends_on:

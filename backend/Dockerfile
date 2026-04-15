@@ -54,25 +54,13 @@ RUN sed -i '/"type": "module",/d' package.json
 # Remove build tools to reduce image size
 RUN apk del python3 make g++
 
-# Copy compiled output from builder
+# Copy compiled output from builder (includes dist/src and dist/prisma)
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 5000
 
-# Create an entrypoint script with logging for debugging
-RUN printf '#!/bin/sh\n\
-set -e\n\
-echo "=== PetPals Backend Starting ==="\n\
-echo "NODE_ENV: $NODE_ENV"\n\
-echo "PORT: $PORT"\n\
-echo "Database: $(echo $DATABASE_URL | sed '\''s/:[^@]*@/:***@/g'\'')"\n\
-echo "FRONTEND_URL: $FRONTEND_URL"\n\
-echo ""\n\
-echo "Running Prisma migrations..."\n\
-npx prisma migrate deploy 2>&1\n\
-echo "Migrations complete."\n\
-echo ""\n\
-echo "Starting Node.js server..."\n\
-exec node dist/src/server.js\n' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+# Copy entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 CMD ["/app/entrypoint.sh"]

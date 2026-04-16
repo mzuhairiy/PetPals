@@ -28,7 +28,7 @@ services:
       dockerfile: Dockerfile
     env_file: ./backend/.env.docker
     ports:
-      - "5000:5000"
+      - "5001:5000"
     depends_on:
       db:
         condition: service_healthy
@@ -39,12 +39,14 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:5000
+        NEXT_PUBLIC_API_URL: http://localhost:5001
         NEXT_PUBLIC_MIDTRANS_CLIENT_KEY: ${NEXT_PUBLIC_MIDTRANS_CLIENT_KEY:-}
     environment:
       # Server-side API URL (container-to-container via Docker network)
       # This is a runtime env var read by server-side code only
       API_URL_INTERNAL: http://backend:5000
+      # Next.js standalone must listen on 0.0.0.0 to be accessible outside the container
+      HOSTNAME: 0.0.0.0
     ports:
       - "3000:3000"
     depends_on:

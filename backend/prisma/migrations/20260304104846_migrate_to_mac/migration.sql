@@ -1,0 +1,1 @@
+-- This is an empty migration created during Mac migration.

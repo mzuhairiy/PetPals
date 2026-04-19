@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -61,7 +61,7 @@ export default function ShopFilters() {
     fetchPriceRange()
   }, [])
 
-  // Initialize state from URL on mount and when searchParams changes
+  // Initialize state from URL on mount
   useEffect(() => {
     setCategory(searchParams.get("category") || "")
     setPet(searchParams.get("pet") || "")
@@ -77,20 +77,11 @@ export default function ShopFilters() {
       if (min) setMinInput(min)
       if (max) setMaxInput(max)
     }
-  }, [searchParams, priceRangeMax])
-
-  // Track if this is first mount to prevent initial push
-  const isFirstMount = useRef(true)
+  }, [])
 
   // Debounced URL update - only for user-initiated filter changes
   // Skip on initial mount to preserve URL params
   useEffect(() => {
-    // Skip on first mount - we don't want to push URL automatically on load
-    if (isFirstMount.current) {
-      isFirstMount.current = false
-      return
-    }
-
     // Skip if price range not loaded yet
     if (!isPriceRangeLoaded) return
     

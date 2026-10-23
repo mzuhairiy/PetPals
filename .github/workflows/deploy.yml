@@ -87,6 +87,8 @@ jobs:
 
   # ─── Stage 2: Build & Push Docker Images ───
   containerize:
+    # VPS PetPals lama sudah dihapus; aktifkan lagi setelah target baru dikonfigurasi.
+    if: ${{ false }}
     needs: [test-backend, build-frontend]
     runs-on: ubuntu-latest
     permissions:
@@ -126,6 +128,8 @@ jobs:
 
   # ─── Stage 3: Deploy to Staging ───
   deploy-staging:
+    # VPS PetPals lama sudah dihapus; aktifkan lagi setelah target baru dikonfigurasi.
+    if: ${{ false }}
     needs: containerize
     runs-on: ubuntu-latest
     environment: staging
@@ -135,9 +139,9 @@ jobs:
       - name: Copy deploy files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          # host: ${{ secrets.VPS_HOST }}  # VPS lama sudah tidak digunakan
+          # username: ${{ secrets.VPS_USER }}  # VPS lama sudah tidak digunakan
+          # key: ${{ secrets.VPS_SSH_KEY }}  # VPS lama sudah tidak digunakan
           source: "deploy/docker-compose.staging.yml,deploy/nginx/petpals-staging"
           target: "/opt/petpals/staging/"
           strip_components: 1
@@ -145,9 +149,9 @@ jobs:
       - name: Deploy to staging
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          # host: ${{ secrets.VPS_HOST }}  # VPS lama sudah tidak digunakan
+          # username: ${{ secrets.VPS_USER }}  # VPS lama sudah tidak digunakan
+          # key: ${{ secrets.VPS_SSH_KEY }}  # VPS lama sudah tidak digunakan
           script: |
             cd /opt/petpals/staging
 
@@ -285,6 +289,8 @@ jobs:
 
   # ─── Stage 4: Deploy to Production (requires approval) ───
   deploy-production:
+    # VPS PetPals lama sudah dihapus; aktifkan lagi setelah target baru dikonfigurasi.
+    if: ${{ false }}
     needs: [deploy-staging, e2e-tests]
     runs-on: ubuntu-latest
     environment: production
@@ -324,9 +330,9 @@ jobs:
       - name: Copy deploy files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          # host: ${{ secrets.VPS_HOST }}  # VPS lama sudah tidak digunakan
+          # username: ${{ secrets.VPS_USER }}  # VPS lama sudah tidak digunakan
+          # key: ${{ secrets.VPS_SSH_KEY }}  # VPS lama sudah tidak digunakan
           source: "deploy/docker-compose.production.yml,deploy/nginx/petpals-production"
           target: "/opt/petpals/production/"
           strip_components: 1
@@ -334,9 +340,9 @@ jobs:
       - name: Deploy to production
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          # host: ${{ secrets.VPS_HOST }}  # VPS lama sudah tidak digunakan
+          # username: ${{ secrets.VPS_USER }}  # VPS lama sudah tidak digunakan
+          # key: ${{ secrets.VPS_SSH_KEY }}  # VPS lama sudah tidak digunakan
           script: |
             cd /opt/petpals/production
 

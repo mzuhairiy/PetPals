@@ -1,5 +1,5 @@
 # ── Stage 1: Build ──
-FROM node:20-alpine AS builder
+FROM node:22.23.4-alpine AS builder
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ ENV NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=$NEXT_PUBLIC_MIDTRANS_CLIENT_KEY
 RUN npm run build
 
 # ── Stage 2: Production ──
-FROM node:20-alpine AS runner
+FROM node:22.23.4-alpine AS runner
 
 WORKDIR /app
 
